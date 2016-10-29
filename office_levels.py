@@ -1,48 +1,48 @@
 levels = [
-    ('Into the office.', (
-        '###################',
-        '#        $        #',
-        '#                 #',
-        '#                 #',
-        '#                 #',
-        '#                 #',
-        '#        E        #',
-        '###################',
-        ),
-        "You have a job interview can't be late.",
-    ),
-
-    ('Interview Test', (
-        '#######',
-        '#   #e#',
-        '# # # #',
-        '#$#   #',
-        '#######',
-        ),
-        ('"Here is the interview test take the source material and bring back '
-         'a report of your analysis."'),
-    ),
-
-    ('Office Tour 1', (
-        '#######',
-        '#bA$Cd#',
-        '### ###',
-        '#EDaBc#',
-        '#######',
-        ),
-        '"Good! Loved the analysis. The job is yours. But first a tour..."',
-        '"As part of the strict security a lock fits only one key."',
-    ),
-
-    ('Office Tour 2', (
-        '#######',
-        '#$J   #',
-        '# # # #',
-        '#   KE#',
-        '#######',
-        ),
-        '"Prevent injury by avoiding slippery floors and dark walkways."',
-    ),
+     ('Into the office.', (
+         '###################',
+         '#        $        #',
+         '#                 #',
+         '#                 #',
+         '#                 #',
+         '#                 #',
+         '#        E        #',
+         '###################',
+         ),
+         "You have a job interview can't be late.",
+     ),
+ 
+     ('Interview Test', (
+         '#######',
+         '#   #e#',
+         '# # # #',
+         '#$#   #',
+         '#######',
+         ),
+         ('"Here is the interview test take the source material and bring back '
+          'a report of your analysis."'),
+     ),
+ 
+     ('Office Tour 1', (
+         '#######',
+         '#bA$Cd#',
+         '### ###',
+         '#EDaBc#',
+         '#######',
+         ),
+         '"Good! Loved the analysis. The job is yours. But first a tour..."',
+         '"As part of the strict security a lock fits only one key."',
+     ),
+ 
+     ('Office Tour 2', (
+         '#######',
+         '#$J   #',
+         '# # # #',
+         '#   KE#',
+         '#######',
+         ),
+         '"Prevent injury by avoiding slippery floors and dark walkways."',
+     ),
 
     ('Office Tour 3', (
         '#######',

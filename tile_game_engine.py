@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-class MapTile(object):
+class GameTile(object):
     """A object consisting of an action, image and type."""
 
     def __init__(self, tileType, imagePathname, actionFunction):
@@ -20,13 +20,13 @@ class MapTile(object):
             pass
 
     def __str__(self):
-        return '<MapTile: {}>'.format(self.type)
+        return '<GameTile: {}>'.format(self.type)
 
 
-class MapCell(object):
+class GameCell(object):
     """
-    An object consisting of a MapTile object and a tk.Label of an image.
-    Used where an tile and a tkImage are required.
+    An object joinng a GameTile object and a tk.Label of an image. Used
+    where the identity or action of the tile and a tkImage are required.
     """
 
     def __init__(self, Tile, tkImg):
@@ -51,7 +51,7 @@ class MapCell(object):
         self.tk_image.configure(image=Tile.image)
 
     def __str__(self):
-        return "<MapCell: {}>".format(self.type)
+        return "<GameCell: {}>".format(self.type)
 
     def __repr__(self):
         return self.__str__()
@@ -95,7 +95,7 @@ class NavigationalFrame(tk.Frame):
         Tile = self.tiles[tileType]
         tkImg = tk.Label(self, image=Tile.image)
         tkImg.grid(**Index._asdict())
-        return MapCell(Tile, tkImg)
+        return GameCell(Tile, tkImg)
 
     def iter_2d(self, Structure):
         for Row, rowCells in enumerate(Structure):
@@ -128,46 +128,93 @@ class NavigationalFrame(tk.Frame):
         self.cell_locations.clear()
 
 
-class InventoryFrame(tk.Frame):
+class InventoryItem(object):
 
-    invGroup = namedtuple("inventoryGroup", ["fill", "slots"])
+    def __init__(self, Count, Share, tkImage, fillTile):
+        self.count, self.share, self.fill_tile = Count, Share, fillTile
+        # A inventory item may not need to be displayed.
+        self._cell = (GameCell(fillTile, tkImage)
+                      if fillTile is not None or tkImage is not None else None)
+
+    def add(self, Tile, Times=1):
+        self.count += Times
+        self.__change_image(Tile.image)
+
+    def deduct(self, Times=1):
+        self.count -= Times
+        if not self.count:
+            self.__change_image(self.fill_tile.image)
+
+    def __change_image(self, Image):
+        try:
+            self.__cell.replace_tile_image(Image)
+        except AttributeError:  # Expecting NoneType.
+            pass  # Explicitly supressed.
+
+
+class InventoryFrame(tk.Frame):
 
     def __init__(self, Parent, Arranged='Vertically', *args, **kwargs):
         tk.Frame.__init__(self, Parent, *args, **kwargs)
-        self.parent, self.inventory = Parent, {}
+        self.parent, self.itemInventory = Parent, {}
         self.group_pack = ('left' if Arranged == 'Horizontally' else 'top')
 
-    def initialize_group(self, groupName, fillTile, slotAmount,
-                         Arranged='Horizontally', *args, **kwargs):
-        Slots, groupFrame = [], tk.Frame(self.parent, *args, **kwargs)
+    def init_uniquely_displayed_group(self, Tiles, fillTile,
+                                      Arranged="Horizontally"):
+        groupFrame = tk.Frame(self)
         groupFrame.pack(side=self.group_pack)
-        for _ in range(slotAmount):
-            tkImg = tk.Label(groupFrame, image=fillTile.image)
-            tkImg.pack(side=('top' if Arranged == 'Vertically' else 'left'))
-            Slots.append(MapCell(fillTile, tkImg))
-        self.inventory[groupName] = self.invGroup(fillTile, Slots)
+        Share = []
+        for Tile in Tiles:
+            tkImage = tk.Label(groupFrame, image=fillTile.image)
+            tkImage.pack(side=('top' if Arranged == 'Vertically' else 'left'))
+            self.itemInventory[Tile.type]  = InventoryItem(
+                0, Share, tkImage, fillTile)
 
-    def is_carrying(self, groupName, Tile):
-        for Cell in self.inventory[groupName].slots:
-            if Tile == Cell.tile:
-                return True
-        else:
-            return False
+    def init_shared_displayed_group(self, Tiles, fillTile):
+        Share = [Tile.type for Tile in Tiles]
+        tkImage = tk.Label(self, image=fillTile.image)
+        tkImage.pack(side=self.group_pack)
+        for Tile in Tiles:
+            self.itemInventory[Tile.type]  = InventoryItem(
+                0, Share, tkImage, fillTile)
 
-    def include(self, groupName, includedTile):
-        self.replace(groupName, self.inventory[groupName].fill, includedTile)
+    def include(self, Tile):
+        inventoryItem = self.itemInventory.setdefault(
+            Tile.type, InventoryItem(0, [], None, None))
+        if not any(self.itemInventory[shareItem].count
+                   for shareItem in inventoryItem.share):
+            inventoryItem.add(Tile)
 
-    def remove(self, groupName, replaceTile):
-        self.replace(groupName, replaceTile, self.inventory[groupName].fill)
+    def remove(self, Tile):
+        try:  # To accept Tile or Tile.type
+            tileType = Tile.type
+        except AttributeError:
+            tileType = Tile
+        self.itemInventory[tileType].deduct()
 
-    def replace(self, groupName, removedTile, includedTile):
-        removedTileType = removedTile.type
-        for Cell in self.inventory[groupName].slots:
-            if Cell.type == removedTileType:
-                Cell.replace_tile(includedTile)
-                break
+    def is_carrying(self, Tile):
+        inventoryItem = self.itemInventory.setdefault(
+            Tile.type, InventoryItem(0, [], None, None))
+        return inventoryItem.count
+
+    # def get_shared_item(self, Tile):
+        # for sharedItem in self.itemInventory[Tile.type].share:
+            # if self.itemInventory[sharedItem].count
+                # return 
+
+    # def swap_shared_item(self, Tile):
+        # for sharedItem in self.itemInventory[Tile.type].share:
+            # sharedInventoryItem = self.itemInventory[sharedItem]
+            # if sharedInventoryItem.count
+                # self.remove(sharedItem)
+                # self.include(Tile)
+                # return shareInventoryItem.fillTile
+        # else:
+            # self.include(Tile)
+            # return defaultItem
 
     def reset(self):
-        for fillTile, Slots in self.inventory:
-            for Cell in Slots:
-                Cell.replace_tile(fillTile)
+        for inventoryItem in itemInventory.values():
+            if itemInventory.count:
+                inventoryItem.count = 0
+                inventoryItem.tkImage.configure(image=inventoryItem.fillImage)
