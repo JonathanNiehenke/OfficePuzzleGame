@@ -33,7 +33,7 @@ levels = [
          '"Good! Loved the analysis. The job is yours. But first a tour..."',
          '"As part of the strict security a lock fits only one key."',
      ),
- 
+
      ('Office Tour 2', (
          '#######',
          '#$J   #',

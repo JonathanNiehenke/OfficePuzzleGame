@@ -6,20 +6,38 @@ import office_levels
 
 db = print
 
+# Objectives
+#   Source: Position, printing.
+#   Preceeding: Computer, Power, Password, USB.
+#   Return items: Mop, flashlight.
+#   Reset state: Light, motion.
+# Obstructions
+#   Removable: Key locks, wet floor.
+#   Togglable: Lights, Motion detectors.
+#   Portable: Garbage, Cart, Plant, Papers.
+#   Preceeding: Power, Pin, replace bulb, new batteries.
+# Reroute
+#   Emergency: Bathroom, dying phone battery, get boss call.
+#   Other: reminder, correcting mistake.
+# Synergistic Mechanics
+#   Once way: Flashlight-Darkness-Light, Hands-Narrow.
+
+
 class OfficeGame(object):
 
     def __init__(self, Parent, playerTileType, Levels):
         self.parent = Parent
         GameTile, imagePath = tile_game_engine.GameTile, 'Images\\{}.png'.format
-        # Vim marcro: >>."zyi'f(sGameTile('z', imagePath(f,i)wiself.
         self.tiles = {
             '$': GameTile('$', imagePath('Player'), None),
-            '#': GameTile('#', imagePath('Wall'), None),
             ' ': GameTile(' ', imagePath('Empty'), self.move_player),
-            'a': GameTile('a', imagePath('Key_a'), self.pickup_item),
-            'b': GameTile('b', imagePath('Key_b'), self.pickup_item),
-            'c': GameTile('c', imagePath('Key_c'), self.pickup_item),
-            'd': GameTile('d', imagePath('Key_d'), self.pickup_item),
+            '#': GameTile('#', imagePath('Wall'), None),
+            '^': GameTile('^', imagePath('Narrow'), self.through_narrow),
+            '@': GameTile('@', imagePath('DropZone'), self.swap_items),
+            'a': GameTile('a', imagePath('Key_a'), self.pickup_key),
+            'b': GameTile('b', imagePath('Key_b'), self.pickup_key),
+            'c': GameTile('c', imagePath('Key_c'), self.pickup_key),
+            'd': GameTile('d', imagePath('Key_d'), self.pickup_key),
             'A': GameTile('A', imagePath('Lock_A'), self.open_cell),
             'B': GameTile('B', imagePath('Lock_B'), self.open_cell),
             'C': GameTile('C', imagePath('Lock_C'), self.open_cell),
@@ -27,12 +45,12 @@ class OfficeGame(object):
             'e': GameTile('e', imagePath('Source'), self.grab_source),
             'E': GameTile('E', imagePath('Elevator'), self.finish),
             'j': GameTile('j', imagePath('Mop'), self.swap_items),
-            'J': GameTile('J', imagePath('WetFloor'), self.open_cell),
+            'J': GameTile('J', imagePath('WetFloor'), self.remove_slip),
             'k': GameTile('k', imagePath('Flashlight'), self.swap_flashlight),
-            'K': GameTile('K', imagePath('Empty'), self.enter_darkness),
+            'K': GameTile('K', imagePath('Darkness'), self.enter_cell),
             'l': GameTile('l', imagePath('LightOff'), self.turn_light_on),
             'L': GameTile('L', imagePath('LightOn'), self.turn_light_off),
-            '@': GameTile('@', imagePath('DropZone'), self.swap_items),
+            'G': GameTile('G', imagePath('Plant'), self.pickup_item),
             }
         self.fill_tile, self.end_tile = self.tiles[' '], self.tiles['E']
         self.environment = tile_game_engine.NavigationalFrame(
@@ -40,14 +58,17 @@ class OfficeGame(object):
         self.environment.pack()
         self.generated_levels = iter(self.prep_levels(Levels))
         self.level_requirements, self.end_cell = next(self.generated_levels)
-        self.inventory = tile_game_engine.InventoryFrame(Parent)
-        self.inventory.pack()
-        keyTiles = [self.tiles[tileType] for tileType in ('abcd')]
-        self.inventory.init_uniquely_displayed_group(
-            keyTiles, self.fill_tile)
-        handTiles = [self.tiles[tileType] for tileType in ('jk')]
-        self.inventory.init_shared_displayed_group(
-            handTiles, self.fill_tile)
+        keyTiles = [self.tiles[tileType] for tileType in ("abcd")]
+        self.keys = tile_game_engine.InventorySlots(
+            Parent, keyTiles, "left", self.fill_tile, Shared=False)
+        self.keys.pack(side="left")
+        handTiles = [self.tiles[tileType] for tileType in ("jG@")]
+        self.hands = tile_game_engine.InventorySlots(
+            Parent, handTiles, "left", self.tiles['@'], Shared=True)
+        self.hands.pack(side="left")
+        mapTiles = [self.tiles[tileType] for tileType in ("lk")]
+        self.map = tile_game_engine.InventorySlots(
+            None, mapTiles, None, self.fill_tile, Shared=False)
         self.parent.bind("<Key>", self.environment.handle_input)
 
     def prep_levels(self, Levels):
@@ -63,27 +84,22 @@ class OfficeGame(object):
     def move_player(self, moveTo, cellTo):
         self.environment.move_player(moveTo, cellTo)
 
-    def pickup_item(self, moveTo, cellTo):
-        self.inventory.include(cellTo.tile)
+    def pickup_key(self, moveTo, cellTo):
+        Tile = cellTo.tile
+        self.keys.replace(Tile.type, Tile)
         cellTo.replace_tile(self.fill_tile)
         self.move_player(moveTo, cellTo)
         
     def open_cell(self, moveTo, cellTo):
         requiredKey = self.tiles[cellTo.type.lower()]
-        if self.inventory.is_carrying(requiredKey):
-            self.inventory.remove(requiredKey)
+        if self.keys.is_carrying(requiredKey.type):
+            self.keys.remove(requiredKey.type)
             cellTo.replace_tile(self.fill_tile)
             self.move_player(moveTo, cellTo)
 
     def enter_cell(self, moveTo, cellTo):
-        requiredKey = self.tiles[cellTo.type.lower()]
-        if self.inventory.is_carrying(requiredKey):
+        if self.map.is_carrying(cellTo.type.lower()):
             self.move_player(moveTo, cellTo)
-
-    def enter_darkness(self, moveTo, cellTo):
-        acceptableKeys = (self.tiles['k'], self.tiles['l'])
-        if any(self.inventory.is_carrying(Key) for Key in acceptableKeys):
-                self.move_player(moveTo, cellTo)
 
     def grab_source(self, moveTo, cellTo):
         cellTo.replace_tile(self.fill_tile)
@@ -104,20 +120,56 @@ class OfficeGame(object):
         self.level_requirements, self.end_cell = next(self.generated_levels)
 
     def swap_items(self, moveTo, cellTo):
-        pass
+        handItem = self.hands.item(cellTo.tile.type)
+        dropItem = self.map.item(moveTo, cellTo.tile.type)
+        tempDropItem = '@' if dropItem == ' ' else dropItem
+        tempHandItem = '@' if handItem == ' ' else handItem
+        self.hands.replace(handItem, self.tiles[tempDropItem])
+        self.map.replace(moveTo, self.tiles[tempHandItem])
+        cellTo.replace_tile_image(self.tiles[tempHandItem].image)
+        # Level requirements +1 while holding a handItem.
+        if (tempHandItem != '@'):  # Returning Item
+            self.level_requirements -= 1
+        if (tempDropItem != '@'):  # Accepting Item
+            self.level_requirements += 1
+        self.update_end_cell()
+
+    def pickup_item(self, moveTo, cellTo):
+        if self.hands.item('@') == '@':
+            Tile = cellTo.tile
+            self.hands.replace(Tile.type, Tile)
+            cellTo.replace_tile(self.fill_tile)
+            self.move_player(moveTo, cellTo)
+            self.level_requirements += 1;
+            self.update_end_cell()
+
+    def through_narrow(self, moveTo, cellType):
+        if self.hands.item('@') == '@':
+            self.move_player(moveTo, cellType)
+        # else:
+            # self.explain(cellType)
 
     def swap_flashlight(self, moveTo, cellTo):
         pass
 
+    def remove_slip(self, moveTo, cellTo):
+        requiredKey = self.tiles[cellTo.type.lower()]
+        if self.hands.is_carrying(requiredKey.type):
+            cellTo.replace_tile(self.fill_tile)
+            self.move_player(moveTo, cellTo)
+
     def turn_light_on(self, moveTo, cellTo):
-        self.inventory.include(self.tiles['l'])
         cellTo.replace_tile(self.tiles['L'])
+        for cellIndex in self.environment.cell_locations['K']:
+            self.environment.cells[cellIndex].replace_tile(self.fill_tile)
         self.level_requirements += 1
         self.update_end_cell()
 
     def turn_light_off(self, moveTo, cellTo):
-        self.inventory.remove(self.tiles['l'])
+        darknessTile = self.tiles['K']
         cellTo.replace_tile(self.tiles['l'])
+        for cellIndex in self.environment.cell_locations['K']:
+            self.environment.cells[cellIndex].replace_tile(darknessTile)
         self.level_requirements -= 1
         self.update_end_cell()
 

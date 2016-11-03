@@ -4,20 +4,22 @@ from itertools import chain, cycle
 import tkinter as tk
 from tkinter import messagebox
 
+db = print
+
 
 class GameTile(object):
-    """A object consisting of an action, image and type."""
+    """An object consisting of a type, an image, and an action."""
 
     def __init__(self, tileType, imagePathname, actionFunction):
-        self.actionFunction = actionFunction
-        self.image = tk.PhotoImage(file=imagePathname)
         self.type = tileType
+        self.image = tk.PhotoImage(file=imagePathname)
+        self.actionFunction = actionFunction
 
     def action(self, moveTo, cellTo):
         try:
             self.actionFunction(moveTo, cellTo)
-        except TypeError:  # Circumstantially None.
-            pass
+        except TypeError:  # Expecting NoneType.
+            pass # Explicitly supressed.
 
     def __str__(self):
         return '<GameTile: {}>'.format(self.type)
@@ -25,7 +27,7 @@ class GameTile(object):
 
 class GameCell(object):
     """
-    An object joinng a GameTile object and a tk.Label of an image. Used
+    An object joining a GameTile object and a tk.Label of an image. Used
     where the identity or action of the tile and a tkImage are required.
     """
 
@@ -59,9 +61,8 @@ class GameCell(object):
 
 class NavigationalFrame(tk.Frame):
     """
-    A continuous tk.Frame that displays and manages the graphical
-    representation of the environments above view. Handles level loads,
-    and keyboard input.
+    Manages the graphical representation of the environments above view.
+    Including level loads and keyboard input.
     """
 
     gridIndex = namedtuple('gridIndex', ['row', 'column'])
@@ -82,25 +83,28 @@ class NavigationalFrame(tk.Frame):
         self.cells, self.cell_locations = {}, defaultdict(list)
 
     def build(self, Structure):
-        for Index, tileType in self.iter_2d(Structure):
-            self.cells[Index] = self.initiate_cell(Index, tileType)
+        for Index, tileType in self.__iter_2d(Structure):
+            self.cells[Index] = self.__initiate_game_cell(Index, tileType)
             self.cell_locations[tileType].append(Index)
         startIndex = self.cell_locations[self.player_tile.type][-1]
-        self.cells[startIndex] = self.initiate_cell(
-            self.gridIndex(*startIndex), ' ')
-        self.cells[startIndex].replace_tile_image(self.player_tile.image)
+        # Properly placing player allows walkability of the startIndex.
+        self.__properly_place_player(startIndex)
         self.player_i, self.player_j = startIndex
 
-    def initiate_cell(self, Index, tileType):
+    def __iter_2d(self, Structure):
+        for Row, rowCells in enumerate(Structure):
+            for Col, tileType in enumerate(rowCells):
+                yield self.gridIndex(Row, Col), tileType
+
+    def __initiate_game_cell(self, Index, tileType):
         Tile = self.tiles[tileType]
         tkImg = tk.Label(self, image=Tile.image)
         tkImg.grid(**Index._asdict())
         return GameCell(Tile, tkImg)
 
-    def iter_2d(self, Structure):
-        for Row, rowCells in enumerate(Structure):
-            for Col, tileType in enumerate(rowCells):
-                yield self.gridIndex(Row, Col), tileType
+    def __properly_place_player(self, startIndex):
+        self.cells[startIndex].replace_tile(self.tiles[' '])
+        self.cells[startIndex].replace_tile_image(self.player_tile.image)
 
     def handle_input(self, Event):
         """Handle directional key-press or escape."""
@@ -128,93 +132,82 @@ class NavigationalFrame(tk.Frame):
         self.cell_locations.clear()
 
 
-class InventoryItem(object):
+class ItemSlot(object):
+    """An object managing the item's quantity and display."""
 
-    def __init__(self, Count, Share, tkImage, fillTile):
-        self.count, self.share, self.fill_tile = Count, Share, fillTile
-        # A inventory item may not need to be displayed.
-        self._cell = (GameCell(fillTile, tkImage)
-                      if fillTile is not None or tkImage is not None else None)
+    def __init__(self, defaultTile, tkParent, Direction):
+        self.currentType = defaultTile.type
+        self.quantity = 0
+        # Some items won't be displayed.
+        if all((tkParent, Direction, defaultTile)):
+            tkImg = tk.Label(tkParent, image=defaultTile.image)
+            tkImg.pack(side=Direction)
+            self.__game_cell = GameCell(defaultTile, tkImg)
+        else:
+            self.__game_cell = None;
 
-    def add(self, Tile, Times=1):
-        self.count += Times
+    def replace(self, Tile):
+        self.currentType = Tile.type
+        self.quantity = 1
         self.__change_image(Tile.image)
 
-    def deduct(self, Times=1):
-        self.count -= Times
-        if not self.count:
-            self.__change_image(self.fill_tile.image)
+    def remove(self):
+        self.quantity = 0
+        self.__reset_image()
+
+    # def add(self, Tile, Times=1):
+        # self.quantity += Times
+        # self.__change_image(Tile.image)
+
+    # def deduct(self, Times=1):
+        # self.quantity -= Times
+        # if not self.quantity:
+            # self.__reset_image()
 
     def __change_image(self, Image):
         try:
-            self.__cell.replace_tile_image(Image)
+            self.__game_cell.replace_tile_image(Image)
+        except AttributeError:  # Expecting NoneType.
+            pass  # Explicitly supressed.
+
+    def __reset_image(self):
+        try:
+            self.__game_cell.reset_tile_image()
         except AttributeError:  # Expecting NoneType.
             pass  # Explicitly supressed.
 
 
-class InventoryFrame(tk.Frame):
+class InventorySlots(tk.Frame):
+    """An object maintaining groups of ItemSlots."""
 
-    def __init__(self, Parent, Arranged='Vertically', *args, **kwargs):
-        tk.Frame.__init__(self, Parent, *args, **kwargs)
-        self.parent, self.itemInventory = Parent, {}
-        self.group_pack = ('left' if Arranged == 'Horizontally' else 'top')
+    def __init__(self, tkParent, Tiles, Direction, fillTile, Shared):
+        tk.Frame.__init__(self, tkParent)
+        self.fill_tile, self.direction = fillTile, Direction
+        if Shared:
+            sharedSlot = ItemSlot(fillTile, self, Direction)
+            self.slots = {Tile.type: sharedSlot for Tile in Tiles}
+        else:
+            self.slots = {Tile.type: ItemSlot(fillTile, self, Direction)
+                          for Tile in Tiles}
 
-    def init_uniquely_displayed_group(self, Tiles, fillTile,
-                                      Arranged="Horizontally"):
-        groupFrame = tk.Frame(self)
-        groupFrame.pack(side=self.group_pack)
-        Share = []
-        for Tile in Tiles:
-            tkImage = tk.Label(groupFrame, image=fillTile.image)
-            tkImage.pack(side=('top' if Arranged == 'Vertically' else 'left'))
-            self.itemInventory[Tile.type]  = InventoryItem(
-                0, Share, tkImage, fillTile)
+    def replace(self, Id, Tile):
+        self.slots[Id].replace(Tile)
 
-    def init_shared_displayed_group(self, Tiles, fillTile):
-        Share = [Tile.type for Tile in Tiles]
-        tkImage = tk.Label(self, image=fillTile.image)
-        tkImage.pack(side=self.group_pack)
-        for Tile in Tiles:
-            self.itemInventory[Tile.type]  = InventoryItem(
-                0, Share, tkImage, fillTile)
+    def remove(self, Id):
+        self.slots[Id].remove()
 
-    def include(self, Tile):
-        inventoryItem = self.itemInventory.setdefault(
-            Tile.type, InventoryItem(0, [], None, None))
-        if not any(self.itemInventory[shareItem].count
-                   for shareItem in inventoryItem.share):
-            inventoryItem.add(Tile)
+    def item(self, Id, default=None):
+        try:
+            Slot = self.slots[Id]
+        except KeyError:
+            Slot = ItemSlot(self.fill_tile, self, self.direction)
+            Slot.currentType = default
+            self.slots[Id] = Slot
+        return Slot.currentType
 
-    def remove(self, Tile):
-        try:  # To accept Tile or Tile.type
-            tileType = Tile.type
-        except AttributeError:
-            tileType = Tile
-        self.itemInventory[tileType].deduct()
+    def quantitiy(self, Id):
+        return self.slots[Id].quantity
 
-    def is_carrying(self, Tile):
-        inventoryItem = self.itemInventory.setdefault(
-            Tile.type, InventoryItem(0, [], None, None))
-        return inventoryItem.count
-
-    # def get_shared_item(self, Tile):
-        # for sharedItem in self.itemInventory[Tile.type].share:
-            # if self.itemInventory[sharedItem].count
-                # return 
-
-    # def swap_shared_item(self, Tile):
-        # for sharedItem in self.itemInventory[Tile.type].share:
-            # sharedInventoryItem = self.itemInventory[sharedItem]
-            # if sharedInventoryItem.count
-                # self.remove(sharedItem)
-                # self.include(Tile)
-                # return shareInventoryItem.fillTile
-        # else:
-            # self.include(Tile)
-            # return defaultItem
-
-    def reset(self):
-        for inventoryItem in itemInventory.values():
-            if itemInventory.count:
-                inventoryItem.count = 0
-                inventoryItem.tkImage.configure(image=inventoryItem.fillImage)
+    def is_carrying(self, Id):
+        itemSlot = self.slots[Id]
+        return itemSlot.currentType == Id and itemSlot.quantity
