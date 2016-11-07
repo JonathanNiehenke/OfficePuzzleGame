@@ -91,6 +91,9 @@ class NavigationalFrame(tk.Frame):
         self.__properly_place_player(startIndex)
         self.player_i, self.player_j = startIndex
 
+    def count_tile_types(self, tileType):
+        return len(self.cell_locations.get(tileType, []))
+
     def __iter_2d(self, Structure):
         for Row, rowCells in enumerate(Structure):
             for Col, tileType in enumerate(rowCells):
@@ -125,6 +128,14 @@ class NavigationalFrame(tk.Frame):
         cellTo.replace_tile_image(self.player_tile.image)
         self.player_i, self.player_j = moveTo
 
+    def replace_tiles(self, tileType, Tile):
+        for cellIndex in self.cell_locations[tileType]:
+            self.cells[cellIndex].replace_tile(Tile)
+
+    def iter_types(self, tileType):
+        for cellIndex in self.cell_locations[tileType]:
+            yield self.cells[cellIndex].type
+
     def reset(self):
         for child in self.winfo_children():
             child.destroy()
@@ -136,8 +147,9 @@ class ItemSlot(object):
     """An object managing the item's quantity and display."""
 
     def __init__(self, defaultTile, tkParent, Direction):
-        self.currentType = defaultTile.type
-        self.quantity = 0
+        self.default_tile = defaultTile
+        self.current_type = defaultTile.type
+        self.quantity = 1
         # Some items won't be displayed.
         if all((tkParent, Direction, defaultTile)):
             tkImg = tk.Label(tkParent, image=defaultTile.image)
@@ -147,12 +159,13 @@ class ItemSlot(object):
             self.__game_cell = None;
 
     def replace(self, Tile):
-        self.currentType = Tile.type
+        self.current_type = Tile.type
         self.quantity = 1
         self.__change_image(Tile.image)
 
     def remove(self):
-        self.quantity = 0
+        self.current_type = self.default_tile.type
+        self.quantity = 1
         self.__reset_image()
 
     # def add(self, Tile, Times=1):
@@ -191,23 +204,32 @@ class InventorySlots(tk.Frame):
                           for Tile in Tiles}
 
     def replace(self, Id, Tile):
-        self.slots[Id].replace(Tile)
+        self.__get_slot(Id, Tile.type).replace(Tile)
 
     def remove(self, Id):
         self.slots[Id].remove()
 
-    def item(self, Id, default=None):
+    def quantitiy(self, Id):
+        return self.slots[Id].quantity
+
+    def is_carrying(self, Id, current=None):
+        itemSlot = self.__get_slot(Id, current)
+        return itemSlot.current_type == Id and itemSlot.quantity
+
+    def item(self, Id, current=None):
+        return self.__get_slot(Id, current).current_type
+
+    def __get_slot(self, Id, current):
         try:
             Slot = self.slots[Id]
         except KeyError:
             Slot = ItemSlot(self.fill_tile, self, self.direction)
-            Slot.currentType = default
+            current = self.fill_tile.type if current is None else current
+            Slot.current_type = current
+            Slot.quantity = 1
             self.slots[Id] = Slot
-        return Slot.currentType
+        return Slot
 
-    def quantitiy(self, Id):
-        return self.slots[Id].quantity
+    def clear(self):
+        self.slots.clear()
 
-    def is_carrying(self, Id):
-        itemSlot = self.slots[Id]
-        return itemSlot.currentType == Id and itemSlot.quantity

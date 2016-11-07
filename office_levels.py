@@ -67,9 +67,9 @@ levels = [
 
     ('Office Tour 5', (
         '#S#####',
-        '#$Q#Ke#',
-        'q  QKK#',
         '# Q#Ke#',
+        'q  QKK#',
+        '#$Q#Ke#',
         '#######',
         ),
         '"Electronics my need to be plugged-in before use."',
@@ -107,18 +107,18 @@ levels = [
     ),
 
     ('Office Tour 9', (
-        '###@l##',
+        '###@###',
         '#$#KKK#',
         '#g#KKK#',
-        '#  KKe#',
+        '#  KKel',
         '#k#####',
         ),
         '"The flashlight must also return to its original location."',
     ),
 
     ('Game Puzzle', (
-        '#######',
-	'#eA#a@#',
+        '#####@#',
+	'#eA#aK#',
         '##$JJK#',
         '##^##K#',
         '#j G  #',
@@ -126,15 +126,15 @@ levels = [
         ),
     ),
 
-    ('Game Puzzle', (
-        '#f#p#P#',
-	'#$Ag^a@',
-        '# ### #',
-        '# ### #',
-        '#  FKKl',
-        '#k#####',
-        ),
-    ),
+    # ('Game Puzzle', (
+        # '#f#p#P#',
+	# '#$Ag^a@',
+        # '# ### #',
+        # '# ### #',
+        # '#  FKKl',
+        # '#k#####',
+        # ),
+    # ),
 
     ('Game Puzzle', (
         '#######',
