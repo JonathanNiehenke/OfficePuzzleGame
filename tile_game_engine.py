@@ -109,15 +109,12 @@ class NavigationalFrame(tk.Frame):
         self.cells[startIndex].replace_tile(self.tiles[' '])
         self.cells[startIndex].replace_tile_image(self.player_tile.image)
 
-    def handle_input(self, Event):
-        """Handle directional key-press or escape."""
-        keyPressed = Event.keysym
+    def handle_key(self, keyPressed):
+        """Handle directional key-press."""
         try:
             I, J = self.directional_controls[keyPressed]
         except KeyError:
-            if (keyPressed == "Escape" and
-                    messagebox.askyesno("Quit?", "You want to quit?")):
-                self.parent.destroy()
+            pass  # Explicitly silenced.
         else:
             moveTo = self.player_i + I, self.player_j + J
             self.cells[moveTo].action(moveTo, self.cells[moveTo])
@@ -233,3 +230,14 @@ class InventorySlots(tk.Frame):
     def clear(self):
         self.slots.clear()
 
+class InscribedMessage(tk.Frame):
+
+    def __init__(self, tkParent, Message, Wrap=0):
+        tk.Frame.__init__(self, tkParent)
+        self.pack()
+        tk.Label(self, text=Message, wraplength=Wrap).pack()
+        self.bind("<Key>", self.__destroy)
+        self.focus_set()
+
+    def __destroy(self, Event):
+        self.destroy()

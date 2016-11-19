@@ -1,0 +1,175 @@
+\ Level creation:
+\ 1. The level's name surrounded by double quotes.
+\ 2. Optionally additional double quoted text are messages preceding the level.
+\ 3. The multi-line representative text laying out the tiles within the level.
+\ 4. A completely empty line signals the completion of the level.
+\ -- The player must always be present in a level (incompetence is your own doing).
+\ -- The elevator is optional if a requirement (e, P) is present in the level.
+\ -- Levels have a loose minimum size of 7x5 cause the window will not shrink.
+\ -- No maximium, but consider adjustable tile sizes and screen resolutions.
+\ -- Most tile names correspond with the tile's image within the Image folder.
+\ -- Lines beginning with \ or empty-lines not following a level are ignored.
+
+\ The tiles:
+\ $: Player - Represents the player, required for every level.
+\  : Empty - Walkable.
+\ #: Wall - Immovable obstruction.
+\ ^: Narrow - Obstruction only if holding an object.
+\ @: DropZone - Enables dropping, accepting or swapping of held objects.
+\ a: RedKey - Used to open red locks, stored individually in inventory.
+\ b: BlueKey - Used to open blue locks, stored individually in inventory.
+\ c: GreenKey - Used to open green locks, stored individually in inventory.
+\ d: YellowKey - Used to open yellow locks, stored individually in inventory.
+\ A: RedLock - Opened (replaced by Empty tile) by red keys.
+\ B: BlueLock - Opened by blue keys.
+\ C: GreenLock - Opened by green keys.
+\ D: YellowLock - Opened by yellow keys.
+\ e: Source - The most basic objective required to open the Elevator.
+\ E: Elevator - The levels finishing tile. Placed at player start if not available.
+\ g: Cart - Object that is pick-up and replace by the Empty tile if hands are empty.
+\ G: Plant - Object that is pick-up and replace by the Empty tile if hands are empty.
+\ h: Desk - Permanently drop clean papers.
+\ H: Papers - Object that is pick-up and replace by the Empty tile if hands are empty.
+\ i: TrashCan - Permanently drop trash.
+\ I: Trash - Object that is pick-up and replace by the Empty tile if hands are empty.
+\ j: Mop - A drop zone containing an object used to remove wet floors.
+\ J: WetFloor - Obstruction removed by the mop object.
+\ k: Flashlight - A drop zone containing an object used to pass through darkness.
+\ K: Darkness - An obstruction removed and reset by light or passed with a flashlight.
+\ l: LightOff - Resets ALL initial darkness tiles and removes requirement.
+\ L: LightOn - Replaces ALL darkness tiles with empty tiles and adds requirement.
+\ q: LightPlug - 
+\ Q: LimitPlug - Obstruction only if holding a plug item.
+\ r: ComputerPlug -
+\ R: PrinterPlug -
+\ s: PluggedSocket - Pickup plug and resets/de-energizes ALL initial tiles of that plug.
+\ S: Socket - Drop plug object and replaces/energizes ALL initial of that plug.
+\ p: Computer - Enables use of printer.
+\ P: Printer - Removes requirement if computer was previously activated.
+
+\ #######
+\ #$ Q  #
+\ r  s  R
+\ #  Q E#
+\ #######
+
+"Into the office." 
+"You have a job interview can't be late. Hurry into the elevator."
+#######
+#$    #
+#     #
+#    E#
+#######
+
+"Interview Test"
+"Here is the interview test take the source material and bring back a report of your analysis."
+#######
+#   #e#
+# # # #
+#$#   #
+#######
+
+"Office Tour 1"
+"Good! Loved the analysis. The job is yours. But first a tour..."
+"As part of the strict security policy a lock fits only one key."
+#######
+#bA$Cd#
+### ###
+#EDaBc#
+#######
+
+"Office Tour 2"
+"To prevent a lawsuit and injury to yourself avoid slippery floors and dark walkways."
+#######
+#$J   #
+# # # #
+#   KE#
+#######
+
+"Office Tour 3"
+"Return the mop and turn off lights when leaving an empty room."
+#######
+#E#$#j#
+#J# #K#
+#JJ KK#
+###l###
+
+"Office Tour 4"
+"Some walkways are too narrow to pass with objects, and all objects should remain in their room."
+#######
+#E#K  #
+#G#K#$#
+#   ^ @
+###l###
+
+"Office Tour 5"
+"Electronics may need to be plugged-in before use."
+#s#####
+# Q#Ke#
+q  QKK#
+#$Q#Ke#
+#######
+
+"Office Tour 6"
+"Print the source information from a computer and grab it at a printer."
+#######
+p #   #
+# #$# #
+#   # P
+#######
+
+"Office Tour 7"
+"To prevent injury carry only one item at a time. Also, clean paper is not trash!"
+#######
+#HIE#$@
+#g### @
+#G    #
+####ih#
+
+"Office Tour 8"
+"Remember! Lights off and objects set somewhere."
+##@#l##
+#$Jg E#
+# J#KK#
+#GJ#KK#
+#j###@#
+
+"Office Tour 9"
+"The flashlight allows for safe movement through dark walkways."
+###@###
+#$#KKK#
+#g#KKK#
+#  KKel
+#k#####
+
+"Game Puzzle"
+#####@#
+#eA#aK#
+##$JJK#
+##^##K#
+#j G  #
+#####l#
+
+\\ Game Puzzle
+\\ #f#p#P#
+\\ #$Ag^a@
+\\ # ### #
+\\ # ### #
+\\ #  FKKl
+\\ #k#####
+
+"Game Puzzle"
+#######
+#$^ K l
+@ # #a#
+# # # #
+P A ^Gp
+#######
+
+\\ Test
+\\ ##m#l##
+\\ #N $ K#
+\\ #J#a#A#
+\\ #C#B#b#
+\\ #e#c#g#
+\\ #@#j#n#
