@@ -116,8 +116,11 @@ class NavigationalFrame(tk.Frame):
         except KeyError:
             pass  # Explicitly silenced.
         else:
-            moveTo = self.player_i + I, self.player_j + J
-            self.cells[moveTo].action(moveTo, self.cells[moveTo])
+            # Allows self.cells KeyError pass through if cells exist.
+            if self.cells:
+                moveTo = self.player_i + I, self.player_j + J
+                cellTo = self.cells[moveTo]
+                cellTo.action(moveTo, cellTo)
 
     def move_player(self, moveTo, cellTo):
         cellFrom = self.cells[(self.player_i, self.player_j)]

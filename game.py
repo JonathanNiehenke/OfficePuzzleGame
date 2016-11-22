@@ -30,7 +30,6 @@ db = print
 #   better indicate computer before printer.
 #   better indicate changes/restrictions when holding objects.
 #   ? add restriction explinations: Darkness, WetFloor, and Plug.
-#   ? narrow/wall replacement when item passes through hand inventory.
 
 class OfficeGame(object):
 
@@ -46,7 +45,8 @@ class OfficeGame(object):
             '$': GameTile('$', imagePath('Player'), None),
             ' ': GameTile(' ', imagePath('Empty'), self.move_player),
             '#': GameTile('#', imagePath('Wall'), None),
-            '^': GameTile('^', imagePath('Narrow'), self.through_narrow),
+            ':': GameTile(':', imagePath('OpenNarrow'), self.move_player),
+            ';': GameTile(';', imagePath('ClosedNarrow'), None),
             '@': GameTile('@', imagePath('DropZone'), self.swap_items),
             'a': GameTile('a', imagePath('RedKey'), self.pickup_key),
             'b': GameTile('b', imagePath('BlueKey'), self.pickup_key),
@@ -149,6 +149,16 @@ class OfficeGame(object):
         else:
             self.end_cell.replace_tile(self.end_tile)
 
+    def __accept_object(self, tileType, Tile):
+        self.hands.replace(Tile.type, Tile)
+        self.__change_requirements(1)
+        self.environment.replace_tiles(':', self.tiles[';'])
+
+    def __drop_object(self, tileType):
+        self.hands.remove(tileType)
+        self.__change_requirements(-1)
+        self.environment.replace_tiles(':', self.tiles[':'])
+
     def __handle_input(self, Event):
         keyPressed = Event.keysym
         if (keyPressed == "Escape" and
@@ -202,28 +212,22 @@ class OfficeGame(object):
         # Level requirements +1 while holding a handItem.
         if (handItem != '@'):  # Returning Item
             self.__change_requirements(-1)
+            self.environment.replace_tiles(':', self.tiles[':'])
         if (dropItem != '@'):  # Accepting Item
             self.__change_requirements(1)
+            self.environment.replace_tiles(':', self.tiles[';'])
 
     def pickup_item(self, moveTo, cellTo):
         if self.hands.is_carrying('@'):
             Tile = cellTo.tile
-            self.hands.replace(Tile.type, Tile)
+            self.__accept_object(Tile.type, Tile)
             cellTo.replace_tile(self.fill_tile)
             self.move_player(moveTo, cellTo)
-            self.__change_requirements(1)
 
     def drop_item(self, moveTo, cellTo):
         item = cellTo.type.upper()
         if self.hands.is_carrying(item):
-            self.hands.remove(item)
-            self.__change_requirements(-1)
-
-    def through_narrow(self, moveTo, cellTo):
-        if self.hands.is_carrying('@'):
-            self.move_player(moveTo, cellTo)
-        # else:
-            # self.explain(cellType)
+            self.__drop_object(item)
 
     def remove_slip(self, moveTo, cellTo):
         requiredKey = self.tiles[cellTo.type.lower()]
@@ -238,35 +242,31 @@ class OfficeGame(object):
     def accept_hand_item(self, moveTo, cellTo):
         if self.hands.is_carrying('@'):
             Tile = cellTo.tile
-            self.hands.replace(Tile.type, Tile)
-            self.__change_requirements(1)
+            self.__accept_object(Tile.type, Tile)
         elif self.hands.is_carrying(cellTo.type):
-            self.hands.remove(cellTo.type)
-            self.__change_requirements(-1)
+            self.__drop_object(cellTo.type)
 
     def plug_in(self, moveTo, cellTo):
         Plug = self.hands.item('@')
         if Plug in "qRr":
-            self.hands.remove(Plug)
+            self.__drop_object(Plug)
             self.map.replace(moveTo, self.tiles[Plug])
             cellTo.replace_tile(self.tiles['S'])
             Off = self.tiles[{'q': 'l', 'r': 'p', 'R': 'P'}[Plug]]
             for cellIndex in self.environment.cell_locations[Plug]:
                 self.environment.cells[cellIndex].replace_tile(Off)
-            self.__change_requirements(-1)
 
     def remove_plug(self, moveTo, cellTo):
         Plug = self.map.item(moveTo)
         On = {'q': 'L', 'r': 'p', 'R': 'P'}[Plug]
-        Unpowered = all(cellTypes != On
-                        for cellTypes in self.environment.iter_types(Plug))
+        Unpowered = all(
+            cellTypes != On for cellTypes in self.environment.iter_types(Plug))
         if self.hands.is_carrying('@') and Unpowered:
             plugTile = self.tiles[Plug]
-            self.hands.replace(Plug, plugTile)
             self.map.remove(moveTo)
             cellTo.replace_tile(self.tiles['s'])
             self.environment.replace_tiles(Plug, plugTile)
-            self.__change_requirements(1)
+            self.__accept_object(Plug, plugTile)
 
     def print_source(self, moveTo, cellTo):
         self.map.replace(cellTo.type, cellTo.tile)

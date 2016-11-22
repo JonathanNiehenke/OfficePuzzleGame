@@ -14,7 +14,8 @@
 \ $: Player - Represents the player, required for every level.
 \  : Empty - Walkable.
 \ #: Wall - Immovable obstruction.
-\ ^: Narrow - Obstruction only if holding an object.
+\ :: OpenNarrow - Walkable, but changes to ClosedNarrow when holding object.
+\ ;: ClosedNarrow - Impassable, but changes to OpenNarrow when not holding object.
 \ @: DropZone - Enables dropping, accepting or swapping of held objects.
 \ a: RedKey - Used to open red locks, stored individually in inventory.
 \ b: BlueKey - Used to open blue locks, stored individually in inventory.
@@ -79,7 +80,7 @@
 #######
 
 "Office Tour 2"
-"To prevent a lawsuit and injury to yourself avoid slippery floors and dark walkways."
+"To prevent injury to yourself and a potential lawsuit avoid slippery floors and dark walkways."
 #######
 #$J   #
 # # # #
@@ -87,7 +88,7 @@
 #######
 
 "Office Tour 3"
-"Return the mop and turn off lights when leaving an empty room."
+"Set down any object and turn off lights when leaving an empty room."
 #######
 #E#$#j#
 #J# #K#
@@ -95,11 +96,11 @@
 ###l###
 
 "Office Tour 4"
-"Some walkways are too narrow to pass with objects, and all objects should remain in their room."
+"Some walkways are too narrow to pass with objects, and all objects should remain in the room."
 #######
 #E#K  #
 #G#K#$#
-#   ^ @
+#   : @
 ###l###
 
 "Office Tour 5"
@@ -146,13 +147,13 @@ p #   #
 #####@#
 #eA#aK#
 ##$JJK#
-##^##K#
+##:##K#
 #j G  #
 #####l#
 
 \\ Game Puzzle
 \\ #f#p#P#
-\\ #$Ag^a@
+\\ #$Ag:a@
 \\ # ### #
 \\ # ### #
 \\ #  FKKl
@@ -160,10 +161,10 @@ p #   #
 
 "Game Puzzle"
 #######
-#$^ K l
+#$: K l
 @ # #a#
 # # # #
-P A ^Gp
+P A :Gp
 #######
 
 \\ Test
