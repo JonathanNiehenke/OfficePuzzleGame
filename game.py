@@ -27,7 +27,7 @@ db = print
 
 # Documented improvements
 #   light/darkness replacement excludes player.
-#   better indicate computer before printer.
+#   obscure printer till activating computer.
 #   better indicate changes/restrictions when holding objects.
 #   ? add restriction explanations: Darkness, WetFloor, and Plug.
 
@@ -41,6 +41,7 @@ class OfficeGame(object):
         self.parent = Parent
         self.parent.title("Office Game")
         self.parent.minsize(252, 258)
+        self.parent.bind("<Key>", self.__handle_key)
         self.level_title = tk.StringVar()
         tk.Label(self.parent, textvar=self.level_title).pack()
         self.game_frame = tk.Frame(Parent)
@@ -52,29 +53,32 @@ class OfficeGame(object):
             '#': GameTile('#', imagePath('Wall'), None),
             ':': GameTile(':', imagePath('OpenNarrow'), self.move_player),
             ';': GameTile(';', imagePath('ClosedNarrow'), None),
-            '@': GameTile('@', imagePath('DropZone'), self.swap_items),
+            '@': GameTile('@', imagePath('DropZone'), self.swap_objects),
             'a': GameTile('a', imagePath('RedKey'), self.pickup_key),
             'b': GameTile('b', imagePath('BlueKey'), self.pickup_key),
             'c': GameTile('c', imagePath('GreenKey'), self.pickup_key),
             'd': GameTile('d', imagePath('YellowKey'), self.pickup_key),
-            'A': GameTile('A', imagePath('RedLock'), self.open_cell),
-            'B': GameTile('B', imagePath('BlueLock'), self.open_cell),
-            'C': GameTile('C', imagePath('GreenLock'), self.open_cell),
-            'D': GameTile('D', imagePath('YellowLock'), self.open_cell),
+            'A': GameTile('A', imagePath('RedLock'), self.open_key_lock),
+            'B': GameTile('B', imagePath('BlueLock'), self.open_key_lock),
+            'C': GameTile('C', imagePath('GreenLock'), self.open_key_lock),
+            'D': GameTile('D', imagePath('YellowLock'), self.open_key_lock),
             'e': GameTile('e', imagePath('Source'), self.grab_source),
             'E': GameTile('E', imagePath('Elevator'), self.finish),
-            'g': GameTile('g', imagePath('Cart'), self.pickup_item),
-            'G': GameTile('G', imagePath('Plant'), self.pickup_item),
-            'h': GameTile('h', imagePath('Desk'), self.drop_item),
-            'H': GameTile('H', imagePath('Papers'), self.pickup_item),
-            'i': GameTile('i', imagePath('TrashCan'), self.drop_item),
-            'I': GameTile('I', imagePath('Trash'), self.pickup_item),
-            'j': GameTile('j', imagePath('Mop'), self.swap_items),
-            'J': GameTile('J', imagePath('WetFloor'), self.remove_slip),
-            'k': GameTile('k', imagePath('Flashlight'), self.swap_items),
+            'g': GameTile('g', imagePath('Cart'), self.pickup_object),
+            'G': GameTile('G', imagePath('Plant'), self.pickup_object),
+            'h': GameTile('h', imagePath('Desk'), self.drop_object),
+            'H': GameTile('H', imagePath('Papers'), self.pickup_object),
+            'i': GameTile('i', imagePath('TrashCan'), self.drop_object),
+            'I': GameTile('I', imagePath('Trash'), self.pickup_object),
+            'j': GameTile('j', imagePath('Mop'), self.swap_objects),
+            'J': GameTile('J', imagePath('WetFloor'), self.open_lock),
+            'k': GameTile('k', imagePath('Flashlight'), self.swap_objects),
             'K': GameTile('K', imagePath('Darkness'), self.enter_cell),
-            'l': GameTile('l', imagePath('LightOff'), self.turn_light_on),
-            'L': GameTile('L', imagePath('LightOn'), self.turn_light_off),
+            'l': GameTile('l', imagePath('LightOff'), self.toggle),
+            'L': GameTile('L', imagePath('LightOn'), self.toggle),
+            'm': GameTile('m', imagePath('Eye'), self.toggle),
+            'M': GameTile('M', imagePath('KeyCard_Yellow'), self.toggle),
+            'N': GameTile('N', imagePath('Signal'), None),
             'q': GameTile('q', imagePath('LightPlug'), self.swap_plug),
             'Q': GameTile('Q', imagePath('Empty'), self.limit_plug),
             'r': GameTile('r', imagePath('ComputerPlug'), self.swap_plug),
@@ -96,7 +100,6 @@ class OfficeGame(object):
         self.keys.grid(row=2, column=0)
         self.hands.grid(row=2, column=1)
         self.game_frame.pack()
-        self.parent.bind("<Key>", self.__handle_key)
 
     def __build_inventories(self):
         """Builds the key, hands and map inventory groups."""
@@ -116,19 +119,19 @@ class OfficeGame(object):
             Messages, Level = [], []
             for Line in File:
                 Begins = Line[0]  # Empty lines contain a newline.
-                if Begins == '"':
-                    Messages.append(Line.strip())
-                elif Begins == '\n' and Level:
+                if Begins == '\n' and Level:
                     yield Messages, Level
                     Messages.clear()
                     Level.clear()
+                elif Begins == '"':
+                    Messages.append(Line.strip())
                 elif Begins == '\\' or Begins == '\n':
                     continue
                 else:
                     Level.append(Line.strip())  # removes newline.
 
     def __display_messages(self, Messages):
-        """Display pre-level messages in the place of game_frame."""
+        """Set level title and display pre-level messages."""
         Title, *Information = Messages
         self.level_title.set(Title)
         self.game_frame.pack_forget()
@@ -183,38 +186,51 @@ class OfficeGame(object):
     def move_player(self, moveTo, cellTo):
         self.environment.move_player(moveTo, cellTo)
 
-    def pickup_key(self, moveTo, cellTo):
-        """Replaces cell to Empty and place key in inventory."""
-        Tile = cellTo.tile
-        self.keys.replace(Tile.type, Tile)
+    def open_cell(self, moveTo, cellTo):
+        """Replaces cellTo so it is walkable and move player."""
         cellTo.replace_tile(self.fill_tile)
         self.move_player(moveTo, cellTo)
-
-    def open_cell(self, moveTo, cellTo):
-        """Replaces cell and inventory if carrying the required key."""
-        requiredKey = self.tiles[cellTo.type.lower()]
-        if self.keys.is_carrying(requiredKey.type):
-            self.keys.remove(requiredKey.type)
-            cellTo.replace_tile(self.fill_tile)
-            self.move_player(moveTo, cellTo)
 
     def enter_cell(self, moveTo, cellTo):
         """Move player if carrying the required key."""
         if self.hands.is_carrying(cellTo.type.lower()):
             self.move_player(moveTo, cellTo)
 
+    def pickup_key(self, moveTo, cellTo):
+        """Accept key and opens cell if not already carrying it."""
+        if not self.keys.is_carrying(cellTo.type):
+            cellToTile = cellTo.tile
+            self.keys.replace(cellToTile.type, cellToTile)
+            self.open_cell(moveTo, cellTo)
+
+    def open_key_lock(self, moveTo, cellTo):
+        """Opens cell and removes key if carrying the required key."""
+        requiredKey = cellTo.type.lower()
+        if self.keys.is_carrying(requiredKey):
+            self.keys.remove(requiredKey)
+            self.open_cell(moveTo, cellTo)
+
+    def pickup_object(self, moveTo, cellTo):
+        """Accept object and opens cell if carrying nothing."""
+        if self.hands.is_carrying('@'):
+            cellToTile = cellTo.tile
+            self.__accept_object(cellToTile.type, cellToTile)
+            self.open_cell(moveTo, cellTo)
+
+    def open_lock(self, moveTo, cellTo):
+        """Opens cell if carrying the required key."""
+        if self.hands.is_carrying(cellTo.type.lower()):
+            self.open_cell(moveTo, cellTo)
+
     def grab_source(self, moveTo, cellTo):
         """Replaces cell, moves player and adjusts the environment."""
-        cellTo.replace_tile(self.fill_tile)
+        self.open_cell(moveTo, cellTo)
         self.__change_requirements(-1)
-        self.move_player(moveTo, cellTo)
-        # self.message.set('Source information obtained.')
 
     def finish(self, moveTo, cellTo):
         """Loads the next level or congratulates then closes."""
-        self.move_player(moveTo, cellTo)
-        self.map.clear()
         self.environment.reset()
+        self.map.clear()
         try:
             self.level_requirements, self.end_cell = next(
                 self.generated_levels)
@@ -222,41 +238,27 @@ class OfficeGame(object):
             tk.messagebox.showinfo("Complete", "You finished!")
             self.parent.destroy()
 
-    def swap_items(self, moveTo, cellTo):
+    def swap_objects(self, moveTo, cellTo):
         """Swaps, drops or accepts objects and other adjustments."""
-        handItem = self.hands.item(cellTo.tile.type)
-        dropItem = self.map.item(moveTo, cellTo.tile.type)
-        self.hands.replace(handItem, self.tiles[dropItem])
-        self.map.replace(moveTo, self.tiles[handItem])
-        cellTo.replace_tile_image(self.tiles[handItem].image)
-        # Level requirements +1 while holding a handItem.
-        if (handItem != '@'):  # Returning Item
+        fromHand = self.hands.item(cellTo.tile.type)
+        tileFromHand = self.tiles[fromHand]
+        fromDrop = self.map.item(moveTo, cellTo.tile.type)
+        self.hands.replace(fromHand, self.tiles[fromDrop])
+        self.map.replace(moveTo, tileFromHand)
+        cellTo.replace_tile_image(tileFromHand.image)
+        # Level requirements +1 while holding a fromHand.
+        if (fromHand != '@'):  # Returning Item
             self.__change_requirements(-1)
             self.environment.replace_tiles(':', self.tiles[':'])
-        if (dropItem != '@'):  # Accepting Item
+        if (fromDrop != '@'):  # Accepting Item
             self.__change_requirements(1)
             self.environment.replace_tiles(':', self.tiles[';'])
 
-    def pickup_item(self, moveTo, cellTo):
-        """Replaces cell and moves player if hands have nothing."""
-        if self.hands.is_carrying('@'):
-            Tile = cellTo.tile
-            self.__accept_object(Tile.type, Tile)
-            cellTo.replace_tile(self.fill_tile)
-            self.move_player(moveTo, cellTo)
-
-    def drop_item(self, moveTo, cellTo):
+    def drop_object(self, moveTo, cellTo):
         """Remove object from hands if carrying the intended object."""
         item = cellTo.type.upper()
         if self.hands.is_carrying(item):
             self.__drop_object(item)
-
-    def remove_slip(self, moveTo, cellTo):
-        """Replaces and moves player if carrying the required key."""
-        requiredKey = self.tiles[cellTo.type.lower()]
-        if self.hands.is_carrying(requiredKey.type):
-            cellTo.replace_tile(self.fill_tile)
-            self.move_player(moveTo, cellTo)
 
     def limit_plug(self, moveTo, cellTo):
         """Moves player if not carrying a plug."""
@@ -279,8 +281,7 @@ class OfficeGame(object):
             self.map.replace(moveTo, self.tiles[Plug])
             cellTo.replace_tile(self.tiles['S'])
             Off = self.tiles[{'q': 'l', 'r': 'p', 'R': 'P'}[Plug]]
-            for cellIndex in self.environment.cell_locations[Plug]:
-                self.environment.cells[cellIndex].replace_tile(Off)
+            self.environment.replace_tiles(Plug, Off)
 
     def remove_plug(self, moveTo, cellTo):
         """Accepts plug type and adjusts environment."""
@@ -308,17 +309,20 @@ class OfficeGame(object):
             self.__change_requirements(-1)
             # self.message.set('Source information obtained.')
 
-    def turn_light_on(self, moveTo, cellTo):
+    def toggle(self, moveTo, cellTo):
         """Turns light on and adjusts environment and requirements."""
-        cellTo.replace_tile(self.tiles['L'])
-        self.environment.replace_tiles('K', self.fill_tile,)
-        self.__change_requirements(1)
-
-    def turn_light_off(self, moveTo, cellTo):
-        """Turns light off and adjusts environment and requirements."""
-        cellTo.replace_tile(self.tiles['l'])
-        self.environment.replace_tiles('K', self.tiles['K'])
-        self.__change_requirements(-1)
+        Replacements = {
+            'l': ('K', self.fill_tile), 'L': ('K', self.tiles['K']),
+            'm': ('N', self.fill_tile), 'M': ('N', self.tiles['N'])
+        }
+        cellType = cellTo.type
+        cellTo.replace_tile(self.tiles[cellType.swapcase()])
+        currentType, replacementTile = Replacements[cellType]
+        self.environment.replace_tiles(currentType, replacementTile)
+        if cellType.islower():
+            self.__change_requirements(1)
+        else:
+            self.__change_requirements(-1)
 
 gameWindow = tk.Tk()
 OfficeGame(gameWindow, "office_levels.txt")

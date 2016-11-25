@@ -2,7 +2,7 @@
 \ 1. The level's name surrounded by double quotes.
 \ 2. Optionally additional double quoted text are messages preceding the level.
 \ 3. The multi-line representative text laying out the tiles within the level.
-\ 4. A completely empty line signals the completion of the level.
+\ 4. Empty lines following a level structure signals the completion of the level.
 \ -- The player must always be present in a level (incompetence is your own doing).
 \ -- The elevator is optional if a requirement (e, P) is present in the level.
 \ -- Levels have a loose minimum size of 7x5 cause the window will not shrink.
@@ -57,9 +57,9 @@
 "Into the office." 
 "You have a job interview can't be late. Hurry into the elevator."
 #######
-#$    #
 #     #
-#    E#
+#$   E#
+#     #
 #######
 
 "Interview Test"
@@ -72,6 +72,14 @@
 
 "Office Tour 1"
 "Good! Loved the analysis. The job is yours. But first a tour..."
+"Source information sent from a computer is available at a printer."
+#######
+p #   #
+# #$# #
+#   # P
+#######
+
+"Office Tour 2"
 "As part of the strict security policy a lock fits only one key."
 #######
 #bA$Cd#
@@ -79,61 +87,53 @@
 #EDaBc#
 #######
 
-"Office Tour 2"
-"To prevent injury to yourself and a potential lawsuit avoid slippery floors and dark walkways."
+"Office Tour 3"
+"The safety policy is to avoid slippery floors and dark walkways."
 #######
 #$J   #
 # # # #
 #   KE#
 #######
 
-"Office Tour 3"
-"Set down any object and turn off lights when leaving an empty room."
+"Office Tour 4"
+"Set down all objects and turn off lights before leaving an empty room."
 #######
 #E#$#j#
 #J# #K#
 #JJ KK#
 ###l###
 
-"Office Tour 4"
-"Some walkways are too narrow to pass with objects, and all objects should remain in the room."
-#######
-#E#K  #
-#G#K#$#
-#   : @
-###l###
-
 "Office Tour 5"
-"Electronics may need to be plugged-in before use."
-#s#####
-# Q#Ke#
-q  QKK#
-#$Q#Ke#
-#######
-
-"Office Tour 6"
-"Print the source information from a computer and grab it at a printer."
-#######
-p #   #
-# #$# #
-#   # P
-#######
-
-"Office Tour 7"
-"To prevent injury carry only one item at a time. Also, clean paper is not trash!"
+"Carry only one item at a time and please recycle unused paper!"
 #######
 #HIE#$@
 #g### @
 #G    #
 ####ih#
 
-"Office Tour 8"
-"Remember! Lights off and objects set somewhere."
+"Office Tour 6"
+"Some walkways are too narrow to pass with objects."
+#######
+#E#K  #
+#G#K#$#
+#   : @
+###l###
+
+"Office Tour 7"
+"If not already discovered desinated areas swap objects. Remember! Lights off."
 ##@#l##
 #$Jg E#
 # J#KK#
 #GJ#KK#
 #j###@#
+
+"Office Tour 8"
+"Electronics may need to be plugged-in before use."
+#s#####
+# Q#Ke#
+q  QKK#
+#$Q#Ke#
+#######
 
 "Office Tour 9"
 "The flashlight allows for safe movement through dark walkways."
@@ -143,6 +143,15 @@ p #   #
 #  KKel
 #k#####
 
+"Office Tour 10"
+"The motion detector acts similarly to the light."
+##m#l##
+#N $ K#
+#J#a#A#
+#C#B#b#
+#e#c#g#
+#@#j###
+
 "Game Puzzle"
 #####@#
 #eA#aK#
@@ -151,13 +160,13 @@ p #   #
 #j G  #
 #####l#
 
-\\ Game Puzzle
-\\ #f#p#P#
-\\ #$Ag:a@
-\\ # ### #
-\\ # ### #
-\\ #  FKKl
-\\ #k#####
+\ "Game Puzzle"
+\ #f#p#P#
+\ #$Ag:a@
+\ # ### #
+\ # ### #
+\ #  FKKl
+\ #k#####
 
 "Game Puzzle"
 #######
@@ -167,10 +176,3 @@ p #   #
 P A :Gp
 #######
 
-\\ Test
-\\ ##m#l##
-\\ #N $ K#
-\\ #J#a#A#
-\\ #C#B#b#
-\\ #e#c#g#
-\\ #@#j#n#
