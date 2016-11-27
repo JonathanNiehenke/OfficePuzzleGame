@@ -14,9 +14,8 @@
 \ $: Player - Represents the player, required for every level.
 \  : Empty - Walkable.
 \ #: Wall - Immovable obstruction.
-\ :: OpenNarrow - Walkable, but changes to ClosedNarrow when holding object.
-\ ;: ClosedNarrow - Impassable, but changes to OpenNarrow when not holding object.
-\ @: DropZone - Enables dropping, accepting or swapping of held objects.
+\ e: Source - The most basic objective required to open the Elevator.
+\ E: Elevator - The levels finishing tile. Placed at player start if not available.
 \ a: RedKey - Used to open red locks, stored individually in inventory.
 \ b: BlueKey - Used to open blue locks, stored individually in inventory.
 \ c: GreenKey - Used to open green locks, stored individually in inventory.
@@ -25,34 +24,28 @@
 \ B: BlueLock - Opened by blue keys.
 \ C: GreenLock - Opened by green keys.
 \ D: YellowLock - Opened by yellow keys.
-\ e: Source - The most basic objective required to open the Elevator.
-\ E: Elevator - The levels finishing tile. Placed at player start if not available.
+\ k: Flashlight - A drop zone containing an object used to pass through darkness.
+\ l: LightOff -  Replaces ALL darkness tiles with empty tiles and adds requirement.
+\ K: Darkness - An obstruction removed and reset by light or passed with a flashlight.
+\ j: Mop - A drop zone containing an object used to remove wet floors.
+\ m: MotionOn - Replaces ALL signal tiles with empty tiles and adds requirement.
+\ N: Signal - An obstruction removed by MotionOn.
+\ J: WetFloor - Obstruction removed by the mop object.
+\ @: DropZone - Enables dropping, accepting or swapping of held objects.
+\ :: OpenNarrow - Walkable, but changes to ClosedNarrow when holding object.
 \ g: Cart - Object that is pick-up and replace by the Empty tile if hands are empty.
 \ G: Plant - Object that is pick-up and replace by the Empty tile if hands are empty.
-\ h: Desk - Permanently drop clean papers.
-\ H: Papers - Object that is pick-up and replace by the Empty tile if hands are empty.
-\ i: TrashCan - Permanently drop trash.
-\ I: Trash - Object that is pick-up and replace by the Empty tile if hands are empty.
-\ j: Mop - A drop zone containing an object used to remove wet floors.
-\ J: WetFloor - Obstruction removed by the mop object.
-\ k: Flashlight - A drop zone containing an object used to pass through darkness.
-\ K: Darkness - An obstruction removed and reset by light or passed with a flashlight.
-\ l: LightOff - Resets ALL initial darkness tiles and removes requirement.
-\ L: LightOn - Replaces ALL darkness tiles with empty tiles and adds requirement.
+\ h: Papers - Object that is pick-up and replace by the Empty tile if hands are empty.
+\ H: Desk - Permanently drop clean papers.
+\ i: Trash - Object that is pick-up and replace by the Empty tile if hands are empty.
+\ I: TrashCan - Permanently drop trash.
 \ q: LightPlug - 
 \ Q: LimitPlug - Obstruction only if holding a plug item.
 \ r: ComputerPlug -
 \ R: PrinterPlug -
-\ s: PluggedSocket - Pickup plug and resets/de-energizes ALL initial tiles of that plug.
-\ S: Socket - Drop plug object and replaces/energizes ALL initial of that plug.
+\ s: PluggedSocket - Pickup plug and de-energizes ALL initial tiles of that plug.
 \ p: Computer - Enables use of printer.
 \ P: Printer - Removes requirement if computer was previously activated.
-
-\ #######
-\ #$ Q  #
-\ r  s  R
-\ #  Q E#
-\ #######
 
 "Into the office." 
 "You have a job interview can't be late. Hurry into the elevator."
@@ -70,7 +63,7 @@
 #$#   #
 #######
 
-"Office Tour 1"
+"Office Tour 1: Print source"
 "Good! Loved the analysis. The job is yours. But first a tour..."
 "Source information sent from a computer is available at a printer."
 #######
@@ -79,7 +72,7 @@ p #   #
 #   # P
 #######
 
-"Office Tour 2"
+"Office Tour 2: Keys and locks"
 "As part of the strict security policy a lock fits only one key."
 #######
 #bA$Cd#
@@ -87,7 +80,15 @@ p #   #
 #EDaBc#
 #######
 
-"Office Tour 3"
+"Office Tour 3: Objects"
+"Carry only one item at a time and place unused paper on the desk!"
+####@@#
+# E#$ H
+# ### I
+#ihgG #
+#######
+
+"Office Tour 4: Office hazards"
 "The safety policy is to avoid slippery floors and dark walkways."
 #######
 #$J   #
@@ -95,7 +96,7 @@ p #   #
 #   KE#
 #######
 
-"Office Tour 4"
+"Office Tour 5: Office hazard removal"
 "Set down all objects and turn off lights before leaving an empty room."
 #######
 #E#$#j#
@@ -103,15 +104,7 @@ p #   #
 #JJ KK#
 ###l###
 
-"Office Tour 5"
-"Carry only one item at a time and please recycle unused paper!"
-#######
-#HIE#$@
-#g### @
-#G    #
-####ih#
-
-"Office Tour 6"
+"Office Tour 6: Narrow hallways"
 "Some walkways are too narrow to pass with objects."
 #######
 #E#K  #
@@ -119,60 +112,102 @@ p #   #
 #   : @
 ###l###
 
-"Office Tour 7"
-"If not already discovered desinated areas swap objects. Remember! Lights off."
+"Office Tour 7: Plug-in light"
+"Electronics may need to be plugged-in before use."
+#s#####
+#  #Ke#
+q   KK#
+#$ #Ke#
+#######
+
+"Office Tour 8: Flashlight"
+"The flashlight allows for safe movement through dark walkways."
+#k#####
+#ba$#e#
+#K###B#
+#KKKKA#
+#######
+
+"Office Tour 9: Motion detector"
+"Disable motion detectors to prevent setting off their alarm."
+###m###
+#$K N #
+# K N #
+# K Ne#
+#l#####
+
+"Review"
+#####@#
+#A $ J#
+#E#:#K#
+##j Ga#
+#####l#
+
+"Review 2"
 ##@#l##
 #$Jg E#
 # J#KK#
 #GJ#KK#
 #j###@#
 
-"Office Tour 8"
-"Electronics may need to be plugged-in before use."
-#s#####
-# Q#Ke#
-q  QKK#
-#$Q#Ke#
-#######
-
-"Office Tour 9"
-"The flashlight allows for safe movement through dark walkways."
+"Return the flashlight"
 ###@###
 #$#KKK#
 #g#KKK#
 #  KKel
 #k#####
 
-"Office Tour 10"
-"The motion detector acts similarly to the light."
-##m#l##
-#N $ K#
-#J#a#A#
-#C#B#b#
-#e#c#g#
-#@#j###
+"Returning Synergies"
+##m####
+#$KN:e#
+# KN :#
+# KN  l
+#k#####
 
-"Game Puzzle"
-#####@#
-#eA#aK#
-##$JJK#
-##:##K#
-#j G  #
-#####l#
+"Easy: Item Portal"
+#######
+# : Je#
+#$#@###
+# : Gej
+#######
 
-\ "Game Puzzle"
-\ #f#p#P#
-\ #$Ag:a@
-\ # ### #
-\ # ### #
-\ #  FKKl
-\ #k#####
+"Medium: Item Portal"
+#######
+# : Je#
+#$#k###
+# : Kel
+#####j#
 
-"Game Puzzle"
+"Hard: Item Portal"
+#######
+# :hJe#
+#$#k#H#
+# :hKel
+#####j#
+
+"Digits of Eighty"
 #######
 #$: K l
 @ # #a#
-# # # #
 P A :Gp
 #######
 
+\ "Into the office": Movement
+\ "Interview Test": Source opening.
+\ "Office Tour 1": Printer opening.
+\ "Office Tour 2": Movement, Keys.
+\ "Office Tour 3": Object/dropoff.
+\ "Office Tour 4": wetFloor and darkness obstructions.
+\ "Office Tour 5": Darkness/light, wetFloor/mop, object/dropoff.
+\ "Office Tour 6": Narrow, darkness/light, object/dropoffs.
+\ "Office Tour 7": Plug, darkness/light/.
+\ "Office Tour 8": Keys, flashlight/darkness, object/dropoff.
+\ "Office Tour 9": Darkness/light, motion/Signal, source opening.
+\ "Review": Narrow, object/swap/dropoff, keys, darkness/light, wetFloor/mop.
+\ "Review 2": Object/swap/dropoff, wetFloor/mop, darkness/light.
+\ "Return the flashlight": Object/swap/dropoff, flashlight/darkness/light.
+\ "Returning Synergies": Flashlight/darkness/light, motion/signals, narrow, Dropoff.
+\ "Easy: Item Portal": Narrow, object/dropoff
+\ "Medium: Item Portal: Narrow, darkness/light, object/swap/dropoff"
+\ "Hard: Item Portal": Narrow, flashlight/darkness/light, object/swap/dropoff"
+\ "Digits of Eighty": Narrow, Darkness/light, object/swap/dropoff, print opening"

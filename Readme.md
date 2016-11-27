@@ -7,11 +7,12 @@ Jonathan Niehenke and CBC Tech Club Programming Group.
 
 ###Contained files:###
 - game.py: The game's current driver.
-- office\_levels.py: The game's level information.
+- editor.py: A level creator and tester.
+- tile\_game\_engine.py: The games current support module.
+- office\_levels.txt: The game's level information.
+- Image/\*: 32x32px PNG tile images.
 - office\_mayhem.py: Previous driver. Broken from accidental code removal.
 - tile\_game.py: Previous support module.
-- tile\_game\_engine.py: The games current support module.
-- Image/\*: 32x32px PNG tile images.
 - LICENSE.md - The License.
 - README.md - This file.
 

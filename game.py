@@ -66,18 +66,18 @@ class OfficeGame(object):
             'E': GameTile('E', imagePath('Elevator'), self.finish),
             'g': GameTile('g', imagePath('Cart'), self.pickup_object),
             'G': GameTile('G', imagePath('Plant'), self.pickup_object),
-            'h': GameTile('h', imagePath('Desk'), self.drop_object),
-            'H': GameTile('H', imagePath('Papers'), self.pickup_object),
-            'i': GameTile('i', imagePath('TrashCan'), self.drop_object),
-            'I': GameTile('I', imagePath('Trash'), self.pickup_object),
+            'h': GameTile('h', imagePath('Papers'), self.pickup_object),
+            'H': GameTile('H', imagePath('Desk'), self.drop_object),
+            'i': GameTile('i', imagePath('Trash'), self.pickup_object),
+            'I': GameTile('I', imagePath('TrashCan'), self.drop_object),
             'j': GameTile('j', imagePath('Mop'), self.swap_objects),
             'J': GameTile('J', imagePath('WetFloor'), self.open_lock),
             'k': GameTile('k', imagePath('Flashlight'), self.swap_objects),
             'K': GameTile('K', imagePath('Darkness'), self.enter_cell),
             'l': GameTile('l', imagePath('LightOff'), self.toggle),
             'L': GameTile('L', imagePath('LightOn'), self.toggle),
-            'm': GameTile('m', imagePath('Eye'), self.toggle),
-            'M': GameTile('M', imagePath('KeyCard_Yellow'), self.toggle),
+            'm': GameTile('m', imagePath('MotionOn'), self.toggle),
+            'M': GameTile('M', imagePath('MotionOff'), self.toggle),
             'N': GameTile('N', imagePath('Signal'), None),
             'q': GameTile('q', imagePath('LightPlug'), self.swap_plug),
             'Q': GameTile('Q', imagePath('Empty'), self.limit_plug),
@@ -106,7 +106,7 @@ class OfficeGame(object):
         keyTiles = [self.tiles[tileType] for tileType in ("abcd")]
         Keys = tile_game_engine.InventorySlots(
             self.game_frame, keyTiles, "left", self.fill_tile, Shared=False)
-        handTiles = [self.tiles[tileType] for tileType in ("@jgGHIkqrR")]
+        handTiles = [self.tiles[tileType] for tileType in ("@jgGhikqrR")]
         Hands = tile_game_engine.InventorySlots(
             self.game_frame, handTiles, "left", self.tiles['@'], Shared=True)
         Map = tile_game_engine.InventorySlots(
@@ -129,6 +129,8 @@ class OfficeGame(object):
                     continue
                 else:
                     Level.append(Line.strip())  # removes newline.
+            if Level:  # In-case no empty line at EOF.
+                yield Messages, Level
 
     def __display_messages(self, Messages):
         """Set level title and display pre-level messages."""
@@ -256,7 +258,7 @@ class OfficeGame(object):
 
     def drop_object(self, moveTo, cellTo):
         """Remove object from hands if carrying the intended object."""
-        item = cellTo.type.upper()
+        item = cellTo.type.lower()
         if self.hands.is_carrying(item):
             self.__drop_object(item)
 
@@ -324,7 +326,11 @@ class OfficeGame(object):
         else:
             self.__change_requirements(-1)
 
-gameWindow = tk.Tk()
-OfficeGame(gameWindow, "office_levels.txt")
-gameWindow.focus_set()
-gameWindow.mainloop()
+def main():
+    gameWindow = tk.Tk()
+    OfficeGame(gameWindow, "office_levels.txt")
+    gameWindow.focus_set()
+    gameWindow.mainloop()
+
+if __name__ == "__main__":
+    main()
