@@ -81,11 +81,11 @@ class OfficeGame(object):
             'N': GameTile('N', imagePath('Signal'), None),
             'q': GameTile('q', imagePath('LightPlug'), self.swap_plug),
             'Q': GameTile('Q', imagePath('Empty'), self.limit_plug),
-            'r': GameTile('r', imagePath('ComputerPlug'), self.swap_plug),
-            'R': GameTile('R', imagePath('PrinterPlug'), self.swap_plug),
+            'r': GameTile('r', imagePath('Computer'), self.print_source),
+            'R': GameTile('R', imagePath('ComputerPlug'), self.swap_plug),
             's': GameTile('s', imagePath('Socket'), self.plug_in),
             'S': GameTile('S', imagePath('PluggedSocket'), self.remove_plug),
-            'p': GameTile('p', imagePath('Computer'), self.print_source),
+            'p': GameTile('p', imagePath('PrinterX'), None),
             'P': GameTile('P', imagePath('Printer'), self.grab_print),
         }
         self.fill_tile, self.end_tile = self.tiles[' '], self.tiles['E']
@@ -148,10 +148,9 @@ class OfficeGame(object):
             self.__display_messages(Messages)
             self.environment.build(Structure)
             End = self.environment.cell_locations.get('E', [None])[-1]
-            sourceCount = self.environment.count_tile_types('e')
-            printerCount = self.environment.count_tile_types('p')
-            uPrinterCount = self.environment.count_tile_types('R')
-            Requirements = sourceCount + printerCount + uPrinterCount
+            Requirements = self.environment.count_tile_types('e')
+            Requirements += self.environment.count_tile_types('p')
+            Requirements += self.environment.count_tile_types('P')
             if End is None and Requirements:
                 End = self.environment.cell_locations['$'][-1]
             yield Requirements, self.environment.cells[End]
@@ -282,7 +281,7 @@ class OfficeGame(object):
             self.__drop_object(Plug)
             self.map.replace(moveTo, self.tiles[Plug])
             cellTo.replace_tile(self.tiles['S'])
-            Off = self.tiles[{'q': 'l', 'r': 'p', 'R': 'P'}[Plug]]
+            Off = self.tiles[{'q': 'l', 'R': 'r'}[Plug]]
             self.environment.replace_tiles(Plug, Off)
 
     def remove_plug(self, moveTo, cellTo):
@@ -299,17 +298,14 @@ class OfficeGame(object):
             self.environment.replace_tiles(Plug, plugTile)
 
     def print_source(self, moveTo, cellTo):
-        """Replaces cell and adds print to map inventory."""
-        self.map.replace(cellTo.type, cellTo.tile)
-        cellTo.replace_tile(self.tiles['#'])
+        """Replaces all PrinterX tiles to Printer."""
+        self.environment.replace_tiles('p', self.tiles['P'], isOriginal=True)
 
     def grab_print(self, moveTo, cellTo):
-        """Replaces and changes requirements if map carries print."""
-        if self.map.is_carrying('p'):
-            self.map.remove('p')
-            cellTo.replace_tile(self.tiles['#'])
-            self.__change_requirements(-1)
-            # self.message.set('Source information obtained.')
+        """Reduces a requirement and cellTo tile is replace by wall."""
+        cellTo.replace_tile(self.tiles['#'])
+        self.__change_requirements(-1)
+        # self.message.set('Source information obtained.')
 
     def toggle(self, moveTo, cellTo):
         """Turns light on and adjusts environment and requirements."""

@@ -1,12 +1,12 @@
 \ Level creation:
 \ 1. The level's name surrounded by double quotes.
-\ 2. Optionally additional double quoted text are messages preceding the level.
+\ 2. Additional double quoted text are optional messages preceding the level.
 \ 3. The multi-line representative text laying out the tiles within the level.
 \ 4. Empty lines following a level structure signals the completion of the level.
 \ -- The player must always be present in a level (incompetence is your own doing).
 \ -- The elevator is optional if a requirement (e, P) is present in the level.
 \ -- Levels have a loose minimum size of 7x5 cause the window will not shrink.
-\ -- No maximium, but consider adjustable tile sizes and screen resolutions.
+\ -- No maximum, but consider adjustable tile sizes and screen resolutions.
 \ -- Most tile names correspond with the tile's image within the Image folder.
 \ -- Lines beginning with \ or empty-lines not following a level are ignored.
 
@@ -29,7 +29,7 @@
 \ K: Darkness - An obstruction removed and reset by light or passed with a flashlight.
 \ j: Mop - A drop zone containing an object used to remove wet floors.
 \ m: MotionOn - Replaces ALL signal tiles with empty tiles and adds requirement.
-\ N: Signal - An obstruction removed by MotionOn.
+\ N: Signal - An obstruction removed and reset by Motion detectors.
 \ J: WetFloor - Obstruction removed by the mop object.
 \ @: DropZone - Enables dropping, accepting or swapping of held objects.
 \ :: OpenNarrow - Walkable, but changes to ClosedNarrow when holding object.
@@ -39,13 +39,12 @@
 \ H: Desk - Permanently drop clean papers.
 \ i: Trash - Object that is pick-up and replace by the Empty tile if hands are empty.
 \ I: TrashCan - Permanently drop trash.
-\ q: LightPlug - 
-\ Q: LimitPlug - Obstruction only if holding a plug item.
-\ r: ComputerPlug -
-\ R: PrinterPlug -
-\ s: PluggedSocket - Pickup plug and de-energizes ALL initial tiles of that plug.
-\ p: Computer - Enables use of printer.
-\ P: Printer - Removes requirement if computer was previously activated.
+\ q: LightPlug - Object that when dropped in socket enables them.
+\ r: Computer - Activates printer.
+\ R: ComputerPlug - Object that when dropped in socket enables them.
+\ s: Socket - Drop plug and energizes ALL initial tiles of that plug.
+\ p: PrinterX - An inactive printer, activate with computer.
+\ P: Printer - An objective required to open the Elevator.
 
 "Into the office." 
 "You have a job interview can't be late. Hurry into the elevator."
@@ -67,9 +66,9 @@
 "Good! Loved the analysis. The job is yours. But first a tour..."
 "Source information sent from a computer is available at a printer."
 #######
-p #   #
+r #   #
 # #$# #
-#   # P
+#   # p
 #######
 
 "Office Tour 2: Keys and locks"
@@ -189,7 +188,7 @@ q   KK#
 #######
 #$: K l
 @ # #a#
-P A :Gp
+p A :Gr
 #######
 
 \ "Into the office": Movement

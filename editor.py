@@ -29,15 +29,15 @@ class LevelEditor(object):
             ('C', tk.PhotoImage(file=imagePath('GreenLock'))),
             ('D', tk.PhotoImage(file=imagePath('YellowLock'))),
 
-            ('k', tk.PhotoImage(file=imagePath('Flashlight'))),
-            ('l', tk.PhotoImage(file=imagePath('LightOff'))),
-            ('K', tk.PhotoImage(file=imagePath('Darkness'))),
-            ('j', tk.PhotoImage(file=imagePath('Mop'))),
-
             ('$', tk.PhotoImage(file=imagePath('Player'))),
             ('m', tk.PhotoImage(file=imagePath('MotionOn'))),
             ('N', tk.PhotoImage(file=imagePath('Signal'))),
             ('J', tk.PhotoImage(file=imagePath('WetFloor'))),
+
+            ('k', tk.PhotoImage(file=imagePath('Flashlight'))),
+            ('l', tk.PhotoImage(file=imagePath('LightOff'))),
+            ('K', tk.PhotoImage(file=imagePath('Darkness'))),
+            ('j', tk.PhotoImage(file=imagePath('Mop'))),
 
             ('@', tk.PhotoImage(file=imagePath('DropZone'))),
             (':', tk.PhotoImage(file=imagePath('OpenNarrow'))),
@@ -50,11 +50,11 @@ class LevelEditor(object):
             ('I', tk.PhotoImage(file=imagePath('TrashCan'))),
 
             ('q', tk.PhotoImage(file=imagePath('LightPlug'))),
-            ('r', tk.PhotoImage(file=imagePath('ComputerPlug'))),
-            ('R', tk.PhotoImage(file=imagePath('PrinterPlug'))),
+            ('r', tk.PhotoImage(file=imagePath('Computer'))),
+            ('R', tk.PhotoImage(file=imagePath('ComputerPlug'))),
             ('s', tk.PhotoImage(file=imagePath('Socket'))),
 
-            ('p', tk.PhotoImage(file=imagePath('Computer'))),
+            ('p', tk.PhotoImage(file=imagePath('PrinterX'))),
             ('P', tk.PhotoImage(file=imagePath('Printer'))),
 
         ])
@@ -98,6 +98,7 @@ class LevelEditor(object):
                 yield Row, Col, Tile
 
     def __button_update(self, Char):
+        self.level_entry.delete("insert")
         self.level_entry.insert("insert", Char)
         self.__update()
 

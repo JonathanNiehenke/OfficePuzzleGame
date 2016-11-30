@@ -139,10 +139,12 @@ class NavigationalFrame(tk.Frame):
         cellTo.replace_tile_image(self.player_tile.image)
         self.player_i, self.player_j = moveTo
 
-    def replace_tiles(self, tileType, Tile):
+    def replace_tiles(self, tileType, Tile, isOriginal=False):
         """Replace all initial tiles of tileType with Tile."""
         for cellIndex in self.cell_locations[tileType]:
-            self.cells[cellIndex].replace_tile(Tile)
+            displacedCell = self.cells[cellIndex]
+            if not isOriginal or displacedCell.type == tileType:
+                displacedCell.replace_tile(Tile)
 
     def iter_types(self, tileType):
         """Iterable of the all specified tileType."""
