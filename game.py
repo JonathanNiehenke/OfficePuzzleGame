@@ -42,6 +42,8 @@ class OfficeGame(object):
         self.parent.title("Office Game")
         self.parent.minsize(252, 258)
         self.parent.bind("<Key>", self.__handle_key)
+        self.parent.protocol('WM_DELETE_WINDOW', self.__handle_key)
+        self.quiting = False;
         self.level_title = tk.StringVar()
         tk.Label(self.parent, textvar=self.level_title).pack()
         self.game_frame = tk.Frame(Parent)
@@ -93,7 +95,8 @@ class OfficeGame(object):
         self.environment = tile_game_engine.NavigationalFrame(
             self.game_frame, self.tiles, playerTileType='$')
         self.generated_levels = iter(self.__prep_levels(levelFilename))
-        self.level_requirements, self.end_cell = next(self.generated_levels)
+        self.structure, self.level_requirements, self.end_cell = next(
+            self.generated_levels)
         self.environment.grid(row=0, column=0, columnspan=2)
         tk.Label(self.game_frame, text="Keys").grid(row=1, column=0)
         tk.Label(self.game_frame, text="Object").grid(row=1, column=1)
@@ -113,7 +116,7 @@ class OfficeGame(object):
             None, [], None, self.tiles['@'], Shared=False)
         return Keys, Hands, Map
 
-    def __fileParser(self, fileName):
+    def __file_parser(self, fileName):
         """Iterable of parsed levels from fileName."""
         with open(fileName, "r") as File:
             Messages, Level = [], []
@@ -138,22 +141,24 @@ class OfficeGame(object):
         self.level_title.set(Title)
         self.game_frame.pack_forget()
         for Info in Information:
-            Temp = tile_game_engine.InscribedMessage(self.parent, Info, 250)
-            self.parent.wait_window(Temp)
+            tile_game_engine.InscribedFrame(self.parent).show_msg(Info, 250)
         self.game_frame.pack()
+
+    def __build_level(self, Structure):
+        self.environment.build(Structure)
+        End = self.environment.cell_locations.get('E', [None])[-1]
+        Requirements = self.environment.count_tile_types('e')
+        Requirements += self.environment.count_tile_types('p')
+        Requirements += self.environment.count_tile_types('P')
+        if End is None and Requirements:
+            End = self.environment.cell_locations['$'][-1]
+        return Structure, Requirements, self.environment.cells[End]
 
     def __prep_levels(self, levelFilename):
         """Load level, their messages and their requirements."""
-        for Messages, Structure in self.__fileParser(levelFilename):
+        for Messages, Structure in self.__file_parser(levelFilename):
             self.__display_messages(Messages)
-            self.environment.build(Structure)
-            End = self.environment.cell_locations.get('E', [None])[-1]
-            Requirements = self.environment.count_tile_types('e')
-            Requirements += self.environment.count_tile_types('p')
-            Requirements += self.environment.count_tile_types('P')
-            if End is None and Requirements:
-                End = self.environment.cell_locations['$'][-1]
-            yield Requirements, self.environment.cells[End]
+            yield self.__build_level(Structure)
 
     def __change_requirements(self, value):
         """Change requirements and reveal or hide the elevator."""
@@ -175,14 +180,33 @@ class OfficeGame(object):
         self.__change_requirements(-1)
         self.environment.replace_tiles(':', self.tiles[':'])
 
-    def __handle_key(self, Event):
+    def __handle_key(self, Event=None):
         """Handles keyboard input to quit or move in direction."""
-        keyPressed = Event.keysym
-        if (keyPressed == "Escape" and
-                messagebox.askyesno("Quit?", "You want to quit?")):
-            self.parent.destroy()
+        try:
+            keyPressed = Event.keysym
+        except AttributeError:
+            keyPressed = "Escape"
+        if keyPressed == "Escape" and not self.quiting:
+            self.quiting = True;
+            self.game_frame.pack_forget()
+            Buttons = ("Reset Level", "Quit Game", "Cancel")
+            Idx = tile_game_engine.InscribedFrame(self.parent).button_prompt(
+                "You want too?", Buttons, Wrap=250)
+            {0: self.__reset_level,
+             1: self.parent.destroy,
+             2: self.game_frame.pack}[Idx]()
+            self.quiting = False;
         else:
              self.environment.handle_key(keyPressed)
+
+    def __reset_level(self):
+        self.environment.reset()
+        self.keys.empty()
+        self.hands.empty()
+        self.map.clear()
+        self.structure, self.level_requirements, self.end_cell = (
+            self.__build_level(self.structure))
+        self.game_frame.pack()
 
     def move_player(self, moveTo, cellTo):
         self.environment.move_player(moveTo, cellTo)
@@ -233,7 +257,7 @@ class OfficeGame(object):
         self.environment.reset()
         self.map.clear()
         try:
-            self.level_requirements, self.end_cell = next(
+            self.structure, self.level_requirements, self.end_cell = next(
                 self.generated_levels)
         except StopIteration:
             tk.messagebox.showinfo("Complete", "You finished!")

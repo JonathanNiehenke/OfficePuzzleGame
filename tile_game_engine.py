@@ -1,5 +1,6 @@
 from collections import defaultdict, namedtuple
 from itertools import chain, cycle
+from functools import partial
 
 import tkinter as tk
 from tkinter import messagebox
@@ -251,15 +252,37 @@ class InventorySlots(tk.Frame):
     def clear(self):
         self.slots.clear()
 
-class InscribedMessage(tk.Frame):
-    """Object displaying a message till event occurs."""
+    def empty(self):
+        for Slot in self.slots.values():
+            Slot.remove()
 
-    def __init__(self, tkParent, Message, Wrap=0):
+
+class InscribedFrame(tk.Frame):
+    """Frame for displaying temperary messages and prompts."""
+
+    def __init__(self, tkParent, returnValue=0):
         tk.Frame.__init__(self, tkParent)
+        self.parent = tkParent
         self.pack()
+        self.focus_set()
+        self.returnValue = returnValue
+
+    def show_msg(self, Message, Wrap=0):
         tk.Label(self, text=Message, wraplength=Wrap).pack()
         self.bind("<Key>", self.__destroy)
-        self.focus_set()
+        self.parent.wait_window(self)
+
+    def button_prompt(self, Message, Buttons, Wrap=0, flowDir="left"):
+        tk.Label(self, text=Message, wraplength=Wrap).pack()
+        for Idx, Button in enumerate(Buttons):
+            tk.Button(self, text=Button,
+                command=partial(self.__apply_button, Idx)).pack(side=flowDir)
+        self.parent.wait_window(self)
+        return self.returnValue
+
+    def __apply_button(self, Idx):
+        self.returnValue = Idx
+        self.destroy()
 
     def __destroy(self, Event):
         self.destroy()
