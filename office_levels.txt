@@ -137,9 +137,9 @@ q   KK#
 
 "Review"
 #####@#
-#A $ J#
-#E#:#K#
-##j Ga#
+#EA$ J#
+###:#K#
+#j  Ga#
 #####l#
 
 "Review 2"

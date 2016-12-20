@@ -89,6 +89,16 @@ class OfficeGame(object):
             'S': GameTile('S', imagePath('PluggedSocket'), self.remove_plug),
             'p': GameTile('p', imagePath('PrinterX'), None),
             'P': GameTile('P', imagePath('Printer'), self.grab_print),
+            '0': GameTile('0', imagePath('DD0'), None),
+            '1': GameTile('1', imagePath('DD1'), None),
+            '2': GameTile('2', imagePath('DD2'), None),
+            '3': GameTile('3', imagePath('DD3'), None),
+            '4': GameTile('4', imagePath('DD4'), None),
+            '5': GameTile('5', imagePath('DD5'), None),
+            '6': GameTile('6', imagePath('DD6'), None),
+            '7': GameTile('7', imagePath('DD7'), None),
+            '8': GameTile('8', imagePath('DD8'), None),
+            '9': GameTile('9', imagePath('DD9'), None),
         }
         self.fill_tile, self.end_tile = self.tiles[' '], self.tiles['E']
         self.keys, self.hands, self.map = self.__build_inventories()
@@ -260,7 +270,9 @@ class OfficeGame(object):
             self.structure, self.level_requirements, self.end_cell = next(
                 self.generated_levels)
         except StopIteration:
-            tk.messagebox.showinfo("Complete", "You finished!")
+            self.game_frame.pack_forget()
+            tile_game_engine.InscribedFrame(self.parent).show_msg(
+                "You finished! Hooray!")
             self.parent.destroy()
 
     def swap_objects(self, moveTo, cellTo):

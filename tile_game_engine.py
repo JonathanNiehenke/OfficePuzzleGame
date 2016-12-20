@@ -275,8 +275,9 @@ class InscribedFrame(tk.Frame):
     def button_prompt(self, Message, Buttons, Wrap=0, flowDir="left"):
         tk.Label(self, text=Message, wraplength=Wrap).pack()
         for Idx, Button in enumerate(Buttons):
-            tk.Button(self, text=Button,
-                command=partial(self.__apply_button, Idx)).pack(side=flowDir)
+            Command = partial(self.__apply_button, Idx)
+            promptButton = tk.Button(self, text=Button, command=Command)
+            promptButton.pack(side=flowDir)
         self.parent.wait_window(self)
         return self.returnValue
 
