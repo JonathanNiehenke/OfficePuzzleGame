@@ -113,11 +113,12 @@ r #   #
 
 "Office Tour 7: Plug-in light"
 "Electronics may need to be plugged-in before use."
+"And pin numbers my need to be correctly entered."
 #s#####
 #  #Ke#
-q   KK#
+q  FKK#
 #$ #Ke#
-#######
+#f#####
 
 "Office Tour 8: Flashlight"
 "The flashlight allows for safe movement through dark walkways."
@@ -133,7 +134,7 @@ q   KK#
 #$K N #
 # K N #
 # K Ne#
-#l#####
+#l#n###
 
 "Review"
 #####@#
@@ -158,10 +159,17 @@ q   KK#
 
 "Returning Synergies"
 ##m####
-#$KN:e#
+n$KN:e#
 # KN :#
 # KN  l
 #k#####
+
+"RE-Plugable"
+#####R#
+#$ K  #
+q  s  k
+#  K  #
+#@###p#
 
 "Easy: Item Portal"
 #######
@@ -191,6 +199,25 @@ q   KK#
 p A :Gr
 #######
 
+\ "Into the office": Movement
+\ "Interview Test": Source opening.
+\ "Office Tour 1": Printer opening.
+\ "Office Tour 2": Movement, Keys.
+\ "Office Tour 3": Object/dropoff.
+\ "Office Tour 4": wetFloor and darkness obstructions.
+\ "Office Tour 5": Darkness/light, wetFloor/mop, object/dropoff.
+\ "Office Tour 6": Narrow, darkness/light, object/dropoffs.
+\ "Office Tour 7": Plug, darkness/light/.
+\ "Office Tour 8": Keys, flashlight/darkness, object/dropoff.
+\ "Office Tour 9": Darkness/light, motion/Signal, source opening.
+\ "Review": Narrow, object/swap/dropoff, keys, darkness/light, wetFloor/mop.
+\ "Review 2": Object/swap/dropoff, wetFloor/mop, darkness/light.
+\ "Return the flashlight": Object/swap/dropoff, flashlight/darkness/light.
+\ "Returning Synergies": Flashlight/darkness/light, motion/signals, narrow, Dropoff.
+\ "Easy: Item Portal": Narrow, object/dropoff
+\ "Medium: Item Portal: Narrow, darkness/light, object/swap/dropoff"
+\ "Hard: Item Portal": Narrow, flashlight/darkness/light, object/swap/dropoff"
+\ "Digits of Eighty": Narrow, Darkness/light, object/swap/dropoff, print opening"
 \ "Into the office": Movement
 \ "Interview Test": Source opening.
 \ "Office Tour 1": Printer opening.

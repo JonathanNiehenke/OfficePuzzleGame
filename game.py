@@ -1,4 +1,5 @@
 from collections import defaultdict
+from random import randint
 import tkinter as tk
 from tkinter import messagebox
 
@@ -66,6 +67,8 @@ class OfficeGame(object):
             'D': GameTile('D', imagePath('YellowLock'), self.open_key_lock),
             'e': GameTile('e', imagePath('Source'), self.grab_source),
             'E': GameTile('E', imagePath('Elevator'), self.finish),
+            'f': GameTile('f', imagePath('LockNumber'), self.display_pin),
+            'F': GameTile('F', imagePath('PinLock'), self.enter_lock_pin),
             'g': GameTile('g', imagePath('Cart'), self.pickup_object),
             'G': GameTile('G', imagePath('Plant'), self.pickup_object),
             'h': GameTile('h', imagePath('Papers'), self.pickup_object),
@@ -78,8 +81,9 @@ class OfficeGame(object):
             'K': GameTile('K', imagePath('Darkness'), self.enter_cell),
             'l': GameTile('l', imagePath('LightOff'), self.toggle),
             'L': GameTile('L', imagePath('LightOn'), self.toggle),
-            'm': GameTile('m', imagePath('MotionOn'), self.toggle),
-            'M': GameTile('M', imagePath('MotionOff'), self.toggle),
+            'm': GameTile('m', imagePath('MotionOn'), self.motion_toggle),
+            'M': GameTile('M', imagePath('MotionOff'), self.motion_toggle),
+            'n': GameTile('n', imagePath('MotionNumber'), self.display_pin),
             'N': GameTile('N', imagePath('Signal'), None),
             'q': GameTile('q', imagePath('LightPlug'), self.swap_plug),
             'Q': GameTile('Q', imagePath('Empty'), self.limit_plug),
@@ -122,8 +126,7 @@ class OfficeGame(object):
         handTiles = [self.tiles[tileType] for tileType in ("@jgGhikqrR")]
         Hands = tile_game_engine.InventorySlots(
             self.game_frame, handTiles, "left", self.tiles['@'], Shared=True)
-        Map = tile_game_engine.InventorySlots(
-            None, [], None, self.tiles['@'], Shared=False)
+        Map = {}
         return Keys, Hands, Map
 
     def __file_parser(self, fileName):
@@ -278,18 +281,19 @@ class OfficeGame(object):
     def swap_objects(self, moveTo, cellTo):
         """Swaps, drops or accepts objects and other adjustments."""
         fromHand = self.hands.item(cellTo.tile.type)
-        tileFromHand = self.tiles[fromHand]
-        fromDrop = self.map.item(moveTo, cellTo.tile.type)
-        self.hands.replace(fromHand, self.tiles[fromDrop])
-        self.map.replace(moveTo, tileFromHand)
-        cellTo.replace_tile_image(tileFromHand.image)
-        # Level requirements +1 while holding a fromHand.
-        if (fromHand != '@'):  # Returning Item
-            self.__change_requirements(-1)
-            self.environment.replace_tiles(':', self.tiles[':'])
-        if (fromDrop != '@'):  # Accepting Item
-            self.__change_requirements(1)
-            self.environment.replace_tiles(':', self.tiles[';'])
+        if fromHand not in "qRr": # Do not swap plug types.
+            tileFromHand = self.tiles[fromHand]
+            fromDrop = self.map.get(moveTo, cellTo.tile.type)
+            self.hands.replace(fromHand, self.tiles[fromDrop])
+            self.map[moveTo] = tileFromHand.type
+            cellTo.replace_tile_image(tileFromHand.image)
+            # Level requirements +1 while holding a fromHand.
+            if (fromHand != '@'):  # Returning Item
+                self.__change_requirements(-1)
+                self.environment.replace_tiles(':', self.tiles[':'])
+            if (fromDrop != '@'):  # Accepting Item
+                self.__change_requirements(1)
+                self.environment.replace_tiles(':', self.tiles[';'])
 
     def drop_object(self, moveTo, cellTo):
         """Remove object from hands if carrying the intended object."""
@@ -315,21 +319,21 @@ class OfficeGame(object):
         Plug = self.hands.item('@')
         if Plug in "qRr":
             self.__drop_object(Plug)
-            self.map.replace(moveTo, self.tiles[Plug])
+            self.map[moveTo] = Plug
             cellTo.replace_tile(self.tiles['S'])
             Off = self.tiles[{'q': 'l', 'R': 'r'}[Plug]]
             self.environment.replace_tiles(Plug, Off)
 
     def remove_plug(self, moveTo, cellTo):
         """Accepts plug type and adjusts environment."""
-        Plug = self.map.item(moveTo)
+        Plug = self.map.get(moveTo, '@')
         On = {'q': 'L', 'r': 'p', 'R': 'P'}[Plug]
         Unpowered = all(
             cellTypes != On for cellTypes in self.environment.iter_types(Plug))
         if self.hands.is_carrying('@') and Unpowered:
             plugTile = self.tiles[Plug]
             self.__accept_object(Plug, plugTile)
-            self.map.remove(moveTo)
+            self.map[moveTo] = '@'
             cellTo.replace_tile(self.tiles['s'])
             self.environment.replace_tiles(Plug, plugTile)
 
@@ -342,6 +346,50 @@ class OfficeGame(object):
         cellTo.replace_tile(self.tiles['#'])
         self.__change_requirements(-1)
         # self.message.set('Source information obtained.')
+
+    def __generate_pin(self, moveTo, cellType):
+        pinNumber = self.map.get(moveTo)
+        if (not pinNumber):
+            pinNumber = str(randint(100000, 999999))
+            applyTo = [pair for pair in ("fF", "mn") if cellType in pair][0]
+            for cellIdx in self.environment.iter_locations(applyTo):
+                self.map[cellIdx] = pinNumber
+        return pinNumber
+
+    def __input_pin(self):
+        self.game_frame.pack_forget()
+        userPin = tile_game_engine.InscribedFrame(self.parent).text_prompt(
+            "Enter the required pin number.", 6)
+        self.game_frame.pack()
+        return userPin.strip()
+
+    def display_pin(self, moveTo, cellTo):
+        pinNumber = self.__generate_pin(moveTo, cellTo.type)
+        self.game_frame.pack_forget()
+        tile_game_engine.InscribedFrame(self.parent).show_msg(
+            'Pin Number: {}.'.format(pinNumber))
+        self.game_frame.pack()
+
+    def enter_lock_pin(self, moveTo, cellTo):
+        userPin = self.__input_pin()
+        if (userPin == self.__generate_pin(moveTo, cellTo.type)):
+            self.move_player(moveTo, cellTo)
+        else:
+            self.game_frame.pack_forget()
+            tile_game_engine.InscribedFrame(self.parent).show_msg(
+                "#{}: Failed to unlock".format(userPin))
+            self.game_frame.pack()
+
+    def motion_toggle(self, moveTo, cellTo):
+        userPin = self.__input_pin()
+        if (userPin == self.__generate_pin(moveTo, cellTo.type)):
+            # Delaying change to environment after redisplaying.
+            self.environment.after(750, self.toggle, moveTo, cellTo)
+        else:
+            self.game_frame.pack_forget()
+            tile_game_engine.InscribedFrame(self.parent).show_msg(
+                "#{}: Failed to deactivate".format(userPin))
+            self.game_frame.pack()
 
     def toggle(self, moveTo, cellTo):
         """Turns light on and adjusts environment and requirements."""

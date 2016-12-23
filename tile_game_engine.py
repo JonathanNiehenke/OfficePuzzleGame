@@ -147,6 +147,11 @@ class NavigationalFrame(tk.Frame):
             if not isOriginal or displacedCell.type == tileType:
                 displacedCell.replace_tile(Tile)
 
+    def iter_locations(self, tileTypes):
+        for tileType in tileTypes:
+            for cellIndex in self.cell_locations[tileType]:
+                yield cellIndex
+
     def iter_types(self, tileType):
         """Iterable of the all specified tileType."""
         for cellIndex in self.cell_locations[tileType]:
@@ -269,21 +274,32 @@ class InscribedFrame(tk.Frame):
 
     def show_msg(self, Message, Wrap=0):
         tk.Label(self, text=Message, wraplength=Wrap).pack()
-        self.bind("<Key>", self.__destroy)
+        self.bind("<Key>", lambda x : self.destroy())
+        self.bind("<FocusOut>", lambda x : self.destroy())
         self.parent.wait_window(self)
 
     def button_prompt(self, Message, Buttons, Wrap=0, flowDir="left"):
+        def apply_button(Idx):
+            self.returnValue = Idx
+            self.destroy()
         tk.Label(self, text=Message, wraplength=Wrap).pack()
         for Idx, Button in enumerate(Buttons):
-            Command = partial(self.__apply_button, Idx)
+            Command = partial(apply_button, Idx)
             promptButton = tk.Button(self, text=Button, command=Command)
             promptButton.pack(side=flowDir)
         self.parent.wait_window(self)
         return self.returnValue
 
-    def __apply_button(self, Idx):
-        self.returnValue = Idx
-        self.destroy()
-
-    def __destroy(self, Event):
-        self.destroy()
+    def text_prompt(self, Message, entryWidth, Wrap=0):
+        self.returnValue = ''
+        tk.Label(self, text=Message, wraplength=Wrap).pack()
+        textBox = tk.Entry(self, width=entryWidth)
+        textBox.pack()
+        textBox.focus()
+        def get_text(Event):
+            self.returnValue = textBox.get()
+            self.destroy()
+        textBox.bind("<Return>", get_text)
+        self.bind("<FocusOut>", lambda x : self.destroy())
+        self.parent.wait_window(self)
+        return self.returnValue

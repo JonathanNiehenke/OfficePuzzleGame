@@ -15,9 +15,9 @@ class LevelEditor(object):
         self.parent.bind("<Key>", self.__handle_key)
         imagePath = 'Images\\{}.png'.format
         self.tiles = OrderedDict([
+            ('$', tk.PhotoImage(file=imagePath('Player'))),
             (' ', tk.PhotoImage(file=imagePath('Empty'))),
             ('#', tk.PhotoImage(file=imagePath('Wall'))),
-            ('e', tk.PhotoImage(file=imagePath('Source'))),
             ('E', tk.PhotoImage(file=imagePath('Elevator'))),
 
             ('a', tk.PhotoImage(file=imagePath('RedKey'))),
@@ -29,33 +29,38 @@ class LevelEditor(object):
             ('C', tk.PhotoImage(file=imagePath('GreenLock'))),
             ('D', tk.PhotoImage(file=imagePath('YellowLock'))),
 
-            ('$', tk.PhotoImage(file=imagePath('Player'))),
+            ('e', tk.PhotoImage(file=imagePath('Source'))),
+            ('f', tk.PhotoImage(file=imagePath('LockNumber'))),
+            ('F', tk.PhotoImage(file=imagePath('PinLock'))),
+            ('J', tk.PhotoImage(file=imagePath('WetFloor'))),
+
+            ('n', tk.PhotoImage(file=imagePath('MotionNumber'))),
             ('m', tk.PhotoImage(file=imagePath('MotionOn'))),
             ('N', tk.PhotoImage(file=imagePath('Signal'))),
-            ('J', tk.PhotoImage(file=imagePath('WetFloor'))),
+            ('j', tk.PhotoImage(file=imagePath('Mop'))),
 
             ('k', tk.PhotoImage(file=imagePath('Flashlight'))),
             ('l', tk.PhotoImage(file=imagePath('LightOff'))),
             ('K', tk.PhotoImage(file=imagePath('Darkness'))),
-            ('j', tk.PhotoImage(file=imagePath('Mop'))),
-
             ('@', tk.PhotoImage(file=imagePath('DropZone'))),
-            (':', tk.PhotoImage(file=imagePath('OpenNarrow'))),
+
             ('g', tk.PhotoImage(file=imagePath('Cart'))),
             ('G', tk.PhotoImage(file=imagePath('Plant'))),
-
             ('h', tk.PhotoImage(file=imagePath('Papers'))),
-            ('H', tk.PhotoImage(file=imagePath('Desk'))),
             ('i', tk.PhotoImage(file=imagePath('Trash'))),
-            ('I', tk.PhotoImage(file=imagePath('TrashCan'))),
 
             ('q', tk.PhotoImage(file=imagePath('LightPlug'))),
+            (':', tk.PhotoImage(file=imagePath('OpenNarrow'))),
+            ('H', tk.PhotoImage(file=imagePath('Desk'))),
+            ('I', tk.PhotoImage(file=imagePath('TrashCan'))),
+
             ('r', tk.PhotoImage(file=imagePath('Computer'))),
             ('R', tk.PhotoImage(file=imagePath('ComputerPlug'))),
+            ('P', tk.PhotoImage(file=imagePath('Printer'))),
+            ('p', tk.PhotoImage(file=imagePath('PrinterX'))),
+
             ('s', tk.PhotoImage(file=imagePath('Socket'))),
 
-            ('p', tk.PhotoImage(file=imagePath('PrinterX'))),
-            ('P', tk.PhotoImage(file=imagePath('Printer'))),
 
         ])
         self.test_button = tk.Button(
