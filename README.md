@@ -1,12 +1,12 @@
-#Office Puzzle Game
+# Office Puzzle Game
 
   A tile-based puzzle game within a office environment. Avoid hazards, open
     locks and get objectives.
 
-###Developed by:###
+### Developed by:
 Jonathan Niehenke and CBC Tech Club Programming Group.
 
-###Contained files:###
+### Contained files:
 - game.py: The game.
 - editor.py: A level creator and tester.
 - tile\_game\_engine.py: The games current support module.
@@ -15,7 +15,7 @@ Jonathan Niehenke and CBC Tech Club Programming Group.
 - LICENSE.md - The License.
 - README.md - This file.
 
-###Requires:###
+### Requires:
 - Python 3: <https://www.python.org/downloads/>
 - Tkinter:
   - Windows: Usually comes with python install.
